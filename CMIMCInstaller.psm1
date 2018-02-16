@@ -1,5 +1,18 @@
 ﻿#Requires -PSEdition Desktop
 
+Add-Type -TypeDefinition '
+    namespace CMI.PS
+    {
+        public enum App {
+            Common, Mobileclients, Dossierbrowser, Sitzungsvorbereitung, Zusammenarbeitdritte, Steuerbrowser, Starclient
+        }
+
+        public enum ConfigurationAttribute {
+            Extend, Replace, Remove, Internal, Private
+        }
+    }
+'
+
 # Dot-Sourcen der Modulfunktionen
 $filesToInclude = @()
 $filesToInclude += Get-ChildItem -Path $PSScriptRoot\*.ps1

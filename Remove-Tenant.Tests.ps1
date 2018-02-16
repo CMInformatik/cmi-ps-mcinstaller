@@ -17,7 +17,7 @@ InModuleScope CMIMCInstaller {
 
                 Remove-Tenant -ConfigurationFile "Testdrive:\t2.json" -Name "Test2", "Test5" -ErrorAction Stop -Confirm:$false
                 $after = Get-Content -Raw -Path "Testdrive:\t2.json" | ConvertFrom-Json
-      
+
                 $after.Test1 | Should not be $null
                 $after.Test2 | Should be $null
                 $after.Test3 | Should not be $null

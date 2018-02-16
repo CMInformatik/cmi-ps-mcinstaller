@@ -10,14 +10,14 @@ function MustBeFolder {
         [AllowNull()]
         [string]$Path,
         [Parameter(Mandatory = $false)]
-        [AllowNull()]           
+        [AllowNull()]
         [string]$ErrMsg = $null
     )
     
     if ([string]::IsNullOrWhiteSpace($Path)) {
         Throw [System.Management.Automation.ValidationMetadataException] "Ein Verzeichnispfad muss angegeben werden."
     }
-    if (Test-UNCPath $Path -IsFolder) {
+    if (Test-Path $Path -PathType Container) {
         return $true;
     }
     if ([string]::IsNullOrWhiteSpace($ErrMsg)) {

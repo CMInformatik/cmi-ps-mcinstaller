@@ -17,7 +17,7 @@ function MustBeFile {
     if ([string]::IsNullOrWhiteSpace($Path)) {
         Throw [System.Management.Automation.ValidationMetadataException] "Ein Dateipfad muss angegeben werden."
     }
-    if (Test-UNCPath $Path -IsFile) {
+    if (Test-Path $Path -PathType Leaf) {
         return $true;
     }
     if ([string]::IsNullOrWhiteSpace($ErrMsg)) {

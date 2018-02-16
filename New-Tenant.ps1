@@ -83,7 +83,9 @@
         } # Ende if
 
         # Datei schreiben
-        $data | ConvertTo-Json -Depth 99 | Set-Content -Path $ConfigurationFile -ErrorAction Stop
+        if($PSCmdlet.ShouldProcess($ConfigurationFile, "Add $Name")){
+            $data | ConvertTo-Json -Depth 99 -ErrorAction Stop | Set-Content -Path $ConfigurationFile -ErrorAction Stop
+        }
     }
 }
 

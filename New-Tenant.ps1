@@ -1,5 +1,5 @@
 ﻿function New-Tenant {
-    [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Medium')]
+    [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Medium', DefaultParameterSetName="__AllParameterSets")]
     PARAM(
         [parameter(Mandatory = $True, Position = 0, ValueFromPipelineByPropertyName = $True)]
         [ValidateNotNullOrEmpty()]
@@ -15,9 +15,13 @@
         [ValidateNotNullOrEmpty()]
         [System.Uri]$WebServerBaseUri = "https://mobile.cmiaxioma.ch/",
 
-        [parameter(Mandatory = $False, Position = 3, ValueFromPipelineByPropertyName = $True)]
+        [parameter(Mandatory = $False, Position = 3, ValueFromPipelineByPropertyName = $True, ParameterSetName="LandingPage")]
         [ValidateNotNullOrEmpty()]
-        [string]$Title
+        [string]$Title,
+
+        [parameter(Mandatory = $False, Position = 4, ValueFromPipelineByPropertyName = $True, ParameterSetName="LandingPage")]
+        [ValidateNotNullOrEmpty()]
+        [switch]$ConfigureLandingPage
     )
     Begin {
         function Join-Uri {
@@ -43,17 +47,14 @@
         }
 
         # Parameter zusammenstellen
-        if (-not $Title) {
-            $Title = "Mobile Clients $Name"
-        }
         $mobileClientsUri = Join-Uri $WebServerBaseUri "mobileclients"
-        $mobileClientsProxyUri = Join-Uri $mobileClientsUri "proxy/$($Name)sv"
 
         # Mandant hinzufuegen
         if ($data.$Name) {
             throw [System.ArgumentException] "Tenant $Name already exists"
         }
-        $data | Add-Member -MemberType NoteProperty -Name $Name -Value ([ordered]@{
+        Write-Verbose "Adding tenant $Name with minimal common configuration"
+        $data | Add-Member -MemberType NoteProperty -Name $Name -ErrorAction Stop -Value ([ordered]@{
             common        = [ordered]@{
                 api = [ordered]@{
                     server  = $mobileClientsUri
@@ -61,19 +62,25 @@
                     private = "/proxy/$($Name)pri"
                 }
             }
-            mobileclients = [ordered]@{
+        }) # Ende Add-Member
+        if($ConfigureLandingPage){
+            if (-not $Title) {
+                $Title = "Mobile Clients $Name"
+            }
+            Write-Verbose "Adding app mobileclients to tenant $Name"
+            $data.$Name.Add("mobileclients", ([ordered]@{
                 info = $Title
                 boot = [ordered]@{
                     _internal = $True
-                    settings = $mobileClientsProxyUri
+                    settings = Join-Uri $mobileClientsUri "proxy/$($Name)sv"
                 }
                 api = [ordered]@{
-                    server = $mobileClientsUri
+                    _extend = $true
                     public  = "/$($Name)"
                     private = "/$($Name)"
                 }
-            }
-        }) # Ende Add-Member
+            })) # Ende Add-Member
+        } # Ende if
 
         # Datei schreiben
         $data | ConvertTo-Json -Depth 99 | Set-Content -Path $ConfigurationFile -ErrorAction Stop

@@ -57,7 +57,7 @@
                         web = Join-Uri $baseUri.GetLeftPart([System.UriPartial]::Authority) "sitzungsvorbereitung\$tenant"
                         app = "cmisitzungsvorbereitung://"
                         sitzungDetail = "/{Gremium}/{Jahr}/{GUID}"
-                        traktandumDetail =  "/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}"
+                        traktandumDetail = "/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}"
                     })
                 } 
                 'Zusammenarbeitdritte' {

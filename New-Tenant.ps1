@@ -40,7 +40,7 @@
         $mobileClientsUri = Join-Uri $WebServerBaseUri "mobileclients"
 
         # Mandant hinzufuegen
-        if ($data.$Name) {
+        if ($data | HasProperty -Name $Name) {
             throw [System.ArgumentException] "Tenant $Name already exists"
         }
         Write-Verbose "Adding tenant $Name with minimal common configuration"
@@ -78,5 +78,3 @@
         }
     }
 }
-
-#New-CMIMCTenant -Name dc3 -ConfigurationFile test.json -Verbose

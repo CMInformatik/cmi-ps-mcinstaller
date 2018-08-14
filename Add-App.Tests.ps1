@@ -21,7 +21,31 @@ InModuleScope CMIMCInstaller {
             Mock Get-Content { "{`"T1`":  {}}" }
             It "Outputs error when common section is not available for tenant" {
                 { Add-App -ConfigurationFile "C:\mock" -Tenant 'T1' -App Dossierbrowser -ErrorAction Stop } | Should throw
-                $error[0].Exception.Message | Should BeLike "*does not have required common configuration*"
+            }
+        }
+
+        
+
+        Context "When adding tenant" {
+            Context "appDirectory" {
+                New-Tenant -ConfigurationFile "Testdrive:\config2.json" -Name "T"
+                foreach ($app in ('Dossierbrowser', 'Sitzungsvorbereitung', 'Zusammenarbeitdritte')) {
+                    it "Adds appDirectory entry for $app" {
+                        Add-App -ConfigurationFile "Testdrive:\config2.json" -Tenant 'T' -App $App -ErrorAction Stop | Should be $null
+                        $result = Get-Content -Raw -Path "Testdrive:\config2.json" | ConvertFrom-Json
+                        $result.T.common.appDirectory.PsObject.Properties.Name | Should -Contain $App
+                    }
+                }
+            }
+            Context "No appDirectory" {
+                New-Tenant -ConfigurationFile "Testdrive:\config2.json" -Name "T"
+                foreach ($app in ('Dossierbrowser', 'Sitzungsvorbereitung', 'Zusammenarbeitdritte')) {
+                    it "Does not add appDirectory for $app when NoAppDirectory is set" {
+                        Add-App -ConfigurationFile "Testdrive:\config2.json" -Tenant 'T' -App $App -NoAppDirectory -ErrorAction Stop | Should be $null
+                        $result = Get-Content -Raw -Path "Testdrive:\config2.json" | ConvertFrom-Json
+                        $result.T.common.appDirectory.PsObject.Properties.Name | Should -Not -Contain $App
+                    }
+                }
             }
         }
     }

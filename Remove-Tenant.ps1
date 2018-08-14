@@ -17,7 +17,7 @@
 
         foreach ($n in $Name) {
             # Mandant entfernen
-            if (-not $data.$n) {
+            if (-not (HasProperty $data.$n)) {
                 Write-Error "Tenant $n not found"
             }
             if ($PSCmdlet.ShouldProcess($ConfigurationFile, "Remove $n")) {

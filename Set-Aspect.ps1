@@ -36,13 +36,54 @@
             }
             return $currentAspect
         }
+        function Add-ConfigProperty([PSCustomObject]$ConfigPart, [CMI.PS.Aspect]$Aspect, [object]$Value) {
+            if ($Aspect -is [CMI.PS.SimpleAspect]) {
+                Test-Value $Aspect $Value
+            }
+            else {
+                if ($Value -and $Value -isnot [PSCustomObject]) {
+                    throw "$($Aspect.Name): $($Value.GetType().FullName) is not convertable to type PSCustomObject"
+                }
+            }
+            Write-Verbose "Adding property $($Aspect.Name)"
+            $ConfigPart | Add-Member -MemberType NoteProperty -Name $Aspect.Name -Value $Value -ErrorAction Stop
+            if ($Aspect.DefaultCCA -ne 'NotSet') {
+                switch ($Aspect.DefaultCCA) {
+                    'Extend' { $attrName = '_extend' }
+                    'Replace' { $attrName = '_replace' }
+                    'Remove' { $attrName = '_remove' }
+                    'Internal' { $attrName = '_internal' }
+                    'Private' { $attrName = '_private' }
+                    Default { throw "Unkown attribute $($Aspect.DefaultCCA.ToString())" }
+                }
+                $ConfigPart.$($Aspect.Name) | Add-Member -MemberType NoteProperty -Name $attrName -Value $true -ErrorAction Stop
+            }
+        }
+
+        function Test-Value([CMI.PS.SimpleAspect]$Aspect, [object]$Value){
+            if ($Value -and !$Aspect.Type.IsInstanceOfType($Value)) {
+                throw "$($Aspect.Name): $($Value.GetType().FullName) is not convertable to type $($Aspect.Type.FullName)"
+            }
+            foreach($attr in $Aspect.ValidationAttributes){
+                Write-Verbose "Testing value against $($attr.GetType().FullName)"
+                $val = $attr.GetType().GetMethods(([Reflection.BindingFlags] "NonPublic,Instance")) | Where-Object Name -eq Validate
+                try{
+                    $val.Invoke($attr, @($Value, $null))
+                }
+                catch {
+                    # non terminating error to terminating error
+                    throw
+                }
+                
+            }
+        }
     }
     Process {
         $data = Get-Content -Path $ConfigurationFile -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
         # Verfiy AspectPath in Model
         $aspectModel = Get-AspectFromModel $Aspect $ConfigurationModel[$App]
 
-        if($aspectModel -isnot [CMI.PS.SimpleAspect]){
+        if ($aspectModel -isnot [CMI.PS.SimpleAspect]) {
             throw "$Aspect is not a simple aspect and can not be set with this method."
         }
         if (-not(HasProperty $data $TenantName)) {
@@ -53,21 +94,25 @@
         }
 
         # Create parent aspects
-        $path = $data.$TenantName.$App
-        foreach($parent in ($aspectModel.Parent.GetAspectPath() -split '\.')){
-            if(!(HasProperty $path $parent)){
-                $path | Add-Member -MemberType NoteProperty -Name $parent -Value ([pscustomobject]@{}) -ErrorAction Stop
+        $configPart = $data.$TenantName.$App
+        foreach ($parentAspect in $aspectModel.GetParents()) {
+            if ($parentAspect -is [CMI.PS.AppSection]) {
+                continue;
             }
-            $path = $path.$parent
+            if (!(HasProperty $configPart $parentAspect.Name)) {
+                Add-ConfigProperty $configPart $parentAspect ([pscustomobject]@{})
+            }
+            $configPart = $configPart.$($parentAspect.Name)
         }
 
         # Create aspect
-        if($PSCmdlet.ShouldProcess($ConfigurationFile, "Set $($aspectModel.GetAspectPath()) to $value")){
-            if(HasProperty $path $aspectModel.Name){
-                $path.$($aspectModel.Name) = $Value
-            } else {
-                $path | Add-Member -MemberType NoteProperty -Name $aspectModel.Name -Value $Value -ErrorAction Stop
-                if($aspectModel.DefaultCCA)
+        if ($PSCmdlet.ShouldProcess($ConfigurationFile, "Set $($aspectModel.GetAspectPath()) to $value")) {
+            if (HasProperty $configPart $aspectModel.Name) {
+                Test-Value $aspectModel $Value
+                $configPart.$($aspectModel.Name) = $Value
+            }
+            else {
+                Add-ConfigProperty $configPart $aspectModel $Value
             }
             $data | ConvertTo-Json -Depth 99 -ErrorAction Stop | Set-Content -Path $ConfigurationFile -ErrorAction Stop
         }

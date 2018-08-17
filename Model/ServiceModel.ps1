@@ -1,0 +1,10 @@
+$service = New-Object CMI.PS.ComplexAspect ('service')
+$service.AddAspect((New-Object CMI.PS.SimpleAspect ('allowDokumenteOpenExternal', [bool], $true)))
+$service.AddAspect((New-Object CMI.PS.SimpleAspect ('allowDokumenteAddNewVersion', [bool], $false)))
+$service.AddAspect((New-Object CMI.PS.SimpleAspect ('allowDokumenteAddNew', [bool], $false)))
+$service.AddAspect((New-Object CMI.PS.SimpleAspect ('supportsDokumenteDelete', [bool], $false)))
+$service.AddAspect((New-Object CMI.PS.SimpleAspect ('supportsPrivate', [bool], $false, [CMI.PS.AxSupport]::R17)))
+$service.AddAspect((New-Object CMI.PS.SimpleAspect ('supportsSaveSettings', [bool], $false, [CMI.PS.AxSupport]::R17)))
+$service.AddAspect((New-Object CMI.PS.SimpleAspect ('allowDokumenteAnnotations', [bool], $false, [CMI.PS.AxSupport]::R17)))
+
+$ConfigurationModel[[CMI.PS.App]::Common].AddAspect($service)

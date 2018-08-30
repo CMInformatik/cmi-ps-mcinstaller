@@ -1,12 +1,27 @@
 ﻿#Requires -PSEdition Desktop
 
 # Konfigurationsmodell Definition
-Add-Type -TypeDefinition (Get-Content .\Model\Schema.cs -ErrorAction Stop -Raw) -ErrorAction Stop
+Add-Type -Path $PSScriptRoot\Schema\cmi.ps.mcschema.dll -ErrorAction Stop
+
+# define accelerators to shortcut: New-Object cmi.ps.mcschema.ComplexAspect --> New-Object ComplexAspect 
+$accelerators = [PSObject].Assembly.GetType('System.Management.Automation.TypeAccelerators')
+$accelerators::Add('ComplexAspect','cmi.ps.mcschema.ComplexAspect')
+$accelerators::Add('SimpleAspect','cmi.ps.mcschema.SimpleAspect')
+$accelerators::Add('AppSection','cmi.ps.mcschema.AppSection')
+$accelerators::Add('App','cmi.ps.mcschema.App')
+$accelerators::Add('ConfigControlAttribute','cmi.ps.mcschema.ConfigControlAttribute')
+$accelerators::Add('AxSupport','cmi.ps.mcschema.AxSupport')
+
+Get-ChildItem -Path $PSScriptRoot\Schema\*.ps1 | ForEach-Object {
+    if (-Not $_.FullName.EndsWith("Tests.ps1")) {
+        . $_.FullName
+    }
+}
 
 # Konfigurationsmodell laden
-[System.Collections.Generic.Dictionary[[string], [CMI.PS.AppSection]]]$sections = (New-Object 'System.Collections.Generic.Dictionary`2[System.String,CMI.PS.AppSection]')
-foreach ($app in [System.Enum]::GetNames( [CMI.PS.App])) {
-    $sections.Add($app, (New-Object CMI.PS.AppSection ([CMI.PS.App]$app)))
+[System.Collections.Generic.Dictionary[[string], [cmi.ps.mcschema.AppSection]]]$sections = (New-Object 'System.Collections.Generic.Dictionary`2[System.String,cmi.ps.mcschema.AppSection]')
+foreach ($app in [System.Enum]::GetNames( [cmi.ps.mcschema.App])) {
+    $sections.Add($app, (New-Object cmi.ps.mcschema.AppSection ([cmi.ps.mcschema.App]$app)))
 }
 Set-Variable -Name ConfigurationModel -Value $sections -Option ReadOnly -Force
 Get-ChildItem -Path $PSScriptRoot\Model\*.ps1 | ForEach-Object {
@@ -14,7 +29,6 @@ Get-ChildItem -Path $PSScriptRoot\Model\*.ps1 | ForEach-Object {
         . $_.FullName
     }
 }
-
 
 # Dot-Sourcen der Modulfunktionen
 $filesToInclude = @()

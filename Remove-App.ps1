@@ -13,7 +13,7 @@
 
         [parameter(Mandatory = $True, Position = 2, ValueFromPipelineByPropertyName = $True)]
         [ValidateNotNull()]
-        [CMI.PS.App]$App
+        [cmi.ps.mcschema.App]$App
     )
     Process {
         # Datei lesen

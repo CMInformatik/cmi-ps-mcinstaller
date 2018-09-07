@@ -23,7 +23,7 @@
     Process {
         # Test value
         if ($Aspect -is [cmi.ps.mcschema.SimpleAspect]) {
-            Test-AspectValue $Aspect $Value
+            $Aspect.TestValue($Value)
         }
         else {
             if ($Value -and $Value -isnot [PSCustomObject]) {

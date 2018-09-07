@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,11 +40,7 @@ namespace cmi.ps.mcschema
             AxSupport axSupport = AxSupport.R16_1
         ) : base(name, defaultCca)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
+            if (type == null) throw new ArgumentNullException(nameof(type));
             if (defaultValue != null && !type.IsInstanceOfType(defaultValue))
             {
                 throw new ArgumentException(
@@ -54,6 +51,20 @@ namespace cmi.ps.mcschema
             DefaultValue = defaultValue;
             Type = type;
             AxSupport = axSupport;
+        }
+
+        public void TestValue(object value)
+        {
+            if (value == null && !IsRequired) return;
+            if (value == null) throw new ArgumentNullException(nameof(value), "A value for this aspect is required");
+            if (!Type.IsInstanceOfType(value)) throw  new ArgumentException($"{value.GetType().FullName} is not convertable to type {Type.FullName}");
+            foreach (var validator in ValidationAttributes)
+            {
+                var valMethod = validator.GetType()
+                    .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).First(x => x.Name == "Validate");
+               object[] param = {value, null};
+               valMethod.Invoke(validator, param); // throws when not fulfilled
+            }
         }
 
         public override IEnumerable<Aspect> Traverse()

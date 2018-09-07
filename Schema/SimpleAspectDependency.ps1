@@ -21,7 +21,7 @@
 
     hidden EnsureAspect(){
         if(!$this.aspect){
-            $this.aspect = Get-AspectFromModel $this.aspectPath $this.app -ErrorAction Stop
+            $this.aspect = $ConfigurationModel.GetAspect($this.app,$this.aspectPath)
         }
         if($this.aspect -isnot [cmi.ps.mcschema.SimpleAspect]){
             throw New-Object System.ArgumentException "$($this.aspectPath) needs to be a simple aspect", "aspectPath"

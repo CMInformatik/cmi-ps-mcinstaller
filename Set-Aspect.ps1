@@ -30,7 +30,7 @@
     Process {
         $data = Get-Content -Path $ConfigurationFile -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
         # Verfiy AspectPath in Model
-        $aspectModel = Get-AspectFromModel $Aspect $App
+        $aspectModel = $ConfigurationModel.GetAspect($App $Aspect)
 
         if ($aspectModel -isnot [cmi.ps.mcschema.SimpleAspect]) {
             throw "$Aspect is not a simple aspect and can not be set with this method."

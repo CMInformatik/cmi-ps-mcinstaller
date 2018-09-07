@@ -50,12 +50,14 @@
     <Compile Include="AppSection.cs" />
     <Compile Include="Aspect.cs" />
     <Compile Include="ComplexAspect.cs" />
+    <Compile Include="ConfigurationModel.cs" />
     <Compile Include="Element.cs" />
     <Compile Include="ElementDependencyNotFulfilled.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="IElementDependency.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleAspect.cs" />
+    <Compile Include="SimpleAspectDependency.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

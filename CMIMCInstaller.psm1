@@ -19,11 +19,7 @@ Get-ChildItem -Path $PSScriptRoot\Schema\*.ps1 | ForEach-Object {
 }
 
 # Konfigurationsmodell laden
-[System.Collections.Generic.Dictionary[[string], [cmi.ps.mcschema.AppSection]]]$sections = (New-Object 'System.Collections.Generic.Dictionary`2[System.String,cmi.ps.mcschema.AppSection]')
-foreach ($app in [System.Enum]::GetNames( [cmi.ps.mcschema.App])) {
-    $sections.Add($app, (New-Object cmi.ps.mcschema.AppSection ([cmi.ps.mcschema.App]$app)))
-}
-Set-Variable -Name ConfigurationModel -Value $sections -Option ReadOnly -Force
+Set-Variable -Name ConfigurationModel -Value (New-Object 'cmi.ps.mcschema.ConfigurationModel') -Option ReadOnly -Force
 Get-ChildItem -Path $PSScriptRoot\Model\*.ps1 | ForEach-Object {
     if (-Not $_.FullName.EndsWith("Tests.ps1")) {
         . $_.FullName

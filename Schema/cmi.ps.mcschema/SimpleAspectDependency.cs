@@ -17,22 +17,14 @@ namespace cmi.ps.mcschema
 
         public SimpleAspectDependency(App app, string aspectPath, object value)
         {
-            if(string.IsNullOrWhiteSpace(aspectPath))
-            {
-                throw new ArgumentException("aspectPath is empty", nameof(aspectPath));
-            }
-            if (!Regex.IsMatch(aspectPath, "^[A-Za-z]+(\\.[A-Za-z]+)*$", RegexOptions.Singleline))
-            {
-                throw new ArgumentException("aspectPath is invalid", nameof(aspectPath));
-            }
-
+            Aspect.ThrowIfInvalidAspectPath(aspectPath);
             this._app = app;
             this._value = value;
             this._aspectPath = aspectPath;
         }
 
 
-public void Verify(PSObject data)
+        public void Verify(PSObject data)
         {
             throw new NotImplementedException();
         }

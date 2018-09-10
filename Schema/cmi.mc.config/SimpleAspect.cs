@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace cmi.ps.mcschema
+namespace cmi.mc.config
 {
     public class SimpleAspect : Aspect
     {

@@ -5,8 +5,9 @@ using System.Management.Automation;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
-namespace cmi.ps.mcschema
+namespace cmi.mc.config
 {
     public class SimpleAspectDependency : IElementDependency
     {
@@ -24,12 +25,12 @@ namespace cmi.ps.mcschema
         }
 
 
-        public void Verify(PSObject data)
+        public void Verify(JContainer data)
         {
             throw new NotImplementedException();
         }
 
-        public void Ensure(PSObject data)
+        public void Ensure(JContainer data)
         {
             throw new NotImplementedException();
         }

@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Management.Automation;
+using Newtonsoft.Json.Linq;
 
-namespace cmi.ps.mcschema
+namespace cmi.mc.config
 {
     public interface IElementDependency
     {
-        void Verify(PSObject data);
-        void Ensure(PSObject data);
+        void Verify(JContainer data);
+        void Ensure(JContainer data);
     }
 }

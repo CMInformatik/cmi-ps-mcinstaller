@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace cmi.ps.mcschema
+namespace cmi.mc.config
 {
     public class ConfigurationModel : IReadOnlyDictionary<App, AppSection>
     {

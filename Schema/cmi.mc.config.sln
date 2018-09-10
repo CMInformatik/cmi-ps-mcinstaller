@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmi.ps.mcschema", "cmi.ps.mcschema\cmi.ps.mcschema.csproj", "{97970DF6-4853-4B90-A0DB-2EE2F865C001}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmi.mc.config", "cmi.mc.config\cmi.mc.config.csproj", "{97970DF6-4853-4B90-A0DB-2EE2F865C001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmi.mc.config.Tests", "cmi.mc.config.Tests\cmi.mc.config.Tests.csproj", "{7B58BC01-7FF6-470A-8313-D7F9C6E4A20C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{97970DF6-4853-4B90-A0DB-2EE2F865C001}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97970DF6-4853-4B90-A0DB-2EE2F865C001}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97970DF6-4853-4B90-A0DB-2EE2F865C001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B58BC01-7FF6-470A-8313-D7F9C6E4A20C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B58BC01-7FF6-470A-8313-D7F9C6E4A20C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B58BC01-7FF6-470A-8313-D7F9C6E4A20C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B58BC01-7FF6-470A-8313-D7F9C6E4A20C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

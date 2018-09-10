@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace cmi.ps.mcschema
+namespace cmi.mc.config
 {
     public abstract class Aspect : Element
     {
@@ -23,7 +23,7 @@ namespace cmi.ps.mcschema
 
         public static bool IsValidAspectPath(string aspectPath)
         {
-            return Regex.IsMatch(aspectPath, "^[A-Za-z]+(\\.[A-Za-z]+)*$", RegexOptions.Singleline);
+            return Regex.IsMatch(aspectPath, "^[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*$", RegexOptions.Singleline);
         }
 
         public static void ThrowIfInvalidAspectPath(string aspectPath)

@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace cmi.mc.config
+namespace cmi.mc.config.SchemaComponents
 {
     public class SimpleAspect : Aspect
     {
@@ -36,9 +34,8 @@ namespace cmi.mc.config
             string name,
             Type type,
             object defaultValue,
-            ConfigControlAttribute defaultCca = ConfigControlAttribute.NotSet,
             AxSupport axSupport = AxSupport.R16_1
-        ) : base(name, defaultCca)
+        ) : base(name)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (defaultValue != null && !type.IsInstanceOfType(defaultValue))

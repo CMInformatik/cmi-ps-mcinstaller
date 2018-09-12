@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace cmi.mc.config
+namespace cmi.mc.config.SchemaComponents
 {
     public abstract class Aspect : Element
     {
         public Aspect Parent { get; set; }
         public Aspect Root => Parent == null ? this : Parent.Root;
 
-        protected Aspect(string name, ConfigControlAttribute defaultCca = ConfigControlAttribute.NotSet) : base(name, defaultCca) { }
+        protected Aspect(string name) : base(name) { }
 
         public virtual string GetAspectPath()
         {

@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 
-namespace cmi.mc.config
+namespace cmi.mc.config.SchemaComponents
 {
     public class ComplexAspect : Aspect
     {
-        public readonly IDictionary<string, Aspect> Aspects = new Dictionary<string, Aspect>();
+        protected readonly IDictionary<string, Aspect> AspectsInternal = new Dictionary<string, Aspect>();
+        public readonly ConfigControlAttribute DefaultCca;
 
-        public ComplexAspect(string name, ConfigControlAttribute defaultCca = ConfigControlAttribute.NotSet) : base(name, defaultCca) { }
+        public IReadOnlyDictionary<string, Aspect> Aspects => new ReadOnlyDictionary<string, Aspect>(AspectsInternal);
 
-        public void AddAspect(Aspect aspect)
+        public ComplexAspect(string name, ConfigControlAttribute defaultCca = ConfigControlAttribute.NotSet) : base(name)
+        {
+            DefaultCca = defaultCca;
+        }
+
+        public virtual void AddAspect(Aspect aspect)
         {
             if (aspect == null)
             {
@@ -23,7 +27,7 @@ namespace cmi.mc.config
                 throw new ArgumentException($"Aspect already has a parent ({aspect.Name})");
             }
             aspect.Parent = this;
-            Aspects.Add(aspect.Name, aspect);
+            AspectsInternal.Add(aspect.Name, aspect);
         }
 
         public override IEnumerable<Aspect> Traverse()

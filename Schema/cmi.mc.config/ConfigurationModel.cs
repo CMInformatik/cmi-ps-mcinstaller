@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using cmi.mc.config.SchemaComponents;
 
 namespace cmi.mc.config
 {
@@ -26,16 +27,13 @@ namespace cmi.mc.config
             Element currentElement = this[app];
             foreach (var part in parts)
             {
-                switch (currentElement)
+                if (currentElement is ComplexAspect)
                 {
-                    case AppSection section when section.Aspects.ContainsKey(part):
-                        currentElement = ((AppSection) currentElement).Aspects[part];
-                        break;
-                    case ComplexAspect aspect when aspect.Aspects.ContainsKey(part):
-                        currentElement = ((ComplexAspect)currentElement).Aspects[part];
-                        break;
-                    default:
-                        throw new KeyNotFoundException($"{app} does not have a aspect path of {aspectPath}");
+                    currentElement = ((ComplexAspect)currentElement).Aspects[part];
+                }
+                else
+                {
+                    throw new KeyNotFoundException($"{app} does not have a aspect path of {aspectPath}");
                 }
             }
             if (!(currentElement is Aspect))

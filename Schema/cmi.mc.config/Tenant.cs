@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using cmi.mc.config.SchemaComponents;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace cmi.mc.config
 {
@@ -13,14 +15,8 @@ namespace cmi.mc.config
     {
         private JProperty _configuration;
         private readonly ConfigurationModel _model;
-        private static readonly IDictionary<ConfigControlAttribute, string> _ccaLookup = new Dictionary<ConfigControlAttribute, string>()
-        {
-            {ConfigControlAttribute.Extend, "_extend"},
-            {ConfigControlAttribute.Replace, "_replace"},
-            {ConfigControlAttribute.Remove, "_remove"},
-            {ConfigControlAttribute.Internal, "_internal"},
-            {ConfigControlAttribute.Private, "_private"},
-        };
+        private static readonly IEnumerable<string> CcaNames = Enum.GetValues(typeof(ConfigControlAttribute)).Cast<ConfigControlAttribute>().Select(e => e.ToConfigurationName());
+
         public string Name => _configuration.Name;
 
         internal Tenant(JProperty configuration, ConfigurationModel model)
@@ -37,15 +33,38 @@ namespace cmi.mc.config
             }
         }
 
-        public bool IsEnabled(App app) => _configuration.HasChildProperty(app.ToString());
+        public bool IsEnabled(App app) => _configuration.HasChildProperty(app);
 
         public void Enable(App app, bool ensureDependencies = false)
         {
             // ToDO: Test dependencies
             if (!IsEnabled(app))
             {
-                _configuration.Add(new JProperty(app.ToString(), null));
+                _configuration.Add(new JProperty(app.ToConfigurationName(), null));
             }
+        }
+
+        public object GetConfigurationPropertyValue(App app, string aspectPath)
+        {
+            var model = _model.GetAspect(app, aspectPath);
+            if (!(model is SimpleAspect))
+            {
+                throw new InvalidOperationException($"{aspectPath} is not a simple aspect and can not be retrieved with this method.");
+            }
+            if (!IsEnabled(app)) return null;
+            var xpath = $"$.{Name}.{app.ToConfigurationName()}.{aspectPath}";
+            var token = _configuration.Root.SelectTokens(xpath).SingleOrDefault();
+            if (token != null && !(token is JValue))
+            {
+                throw new InvalidDataException($"A json value ({nameof(JValue)}) was expected at path {xpath}, but a {token.GetType().Name} was found.");
+            }
+            return ((JValue)token)?.Value;
+        }
+
+        public T GetConfigurationPropertyValue<T>(App app, string aspectPath)
+        {
+            var result = GetConfigurationPropertyValue(app, aspectPath);
+            return (result != null) ? (T)result : default(T);
         }
 
         public void SetConfigurationProperty(App app, string aspectPath, object value, bool ensureDependencies = false)
@@ -63,6 +82,7 @@ namespace cmi.mc.config
             }
             catch (Exception)
             {
+                ((JObject)_configuration.Root)[Name] = beforeChanges;
                 _configuration = beforeChanges;
                 throw;
             }
@@ -71,10 +91,13 @@ namespace cmi.mc.config
         private void SetConfigurationPropertyInternal(App app, Aspect aspect, object value, bool ensureDependencies)
         {
             Debug.Assert(aspect != null);
+            // is app enabled
+            if (!IsEnabled(app))
+            {
+                throw new InvalidOperationException($"App {app.ToString()} is not enabled for tenant {Name}");
+            }
             // test value
             if (aspect is SimpleAspect simpleAspect) simpleAspect.TestValue(value);
-            // enable app
-            if (!IsEnabled(app)) Enable(app, ensureDependencies);
             // test dependencies
             if (aspect.Dependencies.Any())
             {
@@ -93,7 +116,7 @@ namespace cmi.mc.config
             }
 
             // create parent aspects
-            var currentConfigPart = _configuration.GetChildProperty(app.ToString());
+            var currentConfigPart = _configuration.GetChildProperty(app);
             Debug.Assert(currentConfigPart != null);
             if (aspect.Parent != null)
             {
@@ -122,16 +145,19 @@ namespace cmi.mc.config
                 currentConfigPart.Value[aspect.Name] = JToken.FromObject(value);
             }
             // set default cca
-            SetDefaultCCa(aspect, currentConfigPart.GetChildProperty(aspect));
+            if (aspect is ComplexAspect complexAspect)
+            {
+                SetDefaultCCa(complexAspect, currentConfigPart.GetChildProperty(complexAspect));
+            }  
         }
 
-        private static void SetDefaultCCa(Element element, JContainer configPart)
+        private static void SetDefaultCCa(ComplexAspect aspect, JProperty configPart)
         {
-            Debug.Assert(element != null);
+            Debug.Assert(aspect != null);
             Debug.Assert(configPart != null);
-            if (element.DefaultCca == ConfigControlAttribute.NotSet) return; // no default cca defined
-            if (configPart.Children<JProperty>().Any(p => _ccaLookup.Values.Contains(p.Name))) return; // cca is already set
-            configPart.Add(new JProperty(_ccaLookup[element.DefaultCca], true));
+            if (aspect.DefaultCca == ConfigControlAttribute.NotSet) return; // no default cca defined      
+            if (configPart.Value.Children<JProperty>().Any(p => CcaNames.Contains(p.Name))) return; // a cca is already set
+            configPart.Value[aspect.DefaultCca.ToConfigurationName()] = JToken.FromObject(true);
         }
     }
 }

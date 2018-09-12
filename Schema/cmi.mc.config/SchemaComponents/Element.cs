@@ -1,25 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace cmi.mc.config
+namespace cmi.mc.config.SchemaComponents
 {
     public abstract class Element
     {
-        public readonly ConfigControlAttribute DefaultCca;
         public readonly string Name;
         public readonly IList<IElementDependency> Dependencies = new List<IElementDependency>();
 
-        protected Element(string name, ConfigControlAttribute defaultCca = ConfigControlAttribute.NotSet)
+        protected Element(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException(nameof(name));
             }
             Name = name;
-            DefaultCca = defaultCca;
         }
 
         public override string ToString()

@@ -5,6 +5,7 @@ using System.Management.Automation;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using cmi.mc.config.SchemaComponents;
 using Newtonsoft.Json.Linq;
 
 namespace cmi.mc.config

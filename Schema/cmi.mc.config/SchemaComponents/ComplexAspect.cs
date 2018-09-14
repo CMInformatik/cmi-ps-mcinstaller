@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace cmi.mc.config.SchemaComponents
 {
-    public class ComplexAspect : Aspect
+    public class ComplexAspect : Aspect, IComplexAspect
     {
-        protected readonly IDictionary<string, Aspect> AspectsInternal = new Dictionary<string, Aspect>();
-        public readonly ConfigControlAttribute DefaultCca;
+        protected readonly Dictionary<string, IAspect> AspectsInternal = new Dictionary<string, IAspect>();
+        public ConfigControlAttribute DefaultCca { get; }
 
-        public IReadOnlyDictionary<string, Aspect> Aspects => new ReadOnlyDictionary<string, Aspect>(AspectsInternal);
+        public IReadOnlyDictionary<string, IAspect> Aspects => AspectsInternal;
 
         public ComplexAspect(string name, ConfigControlAttribute defaultCca = ConfigControlAttribute.NotSet) : base(name)
         {
             DefaultCca = defaultCca;
         }
 
-        public virtual void AddAspect(Aspect aspect)
+        public virtual void AddAspect(IAspect aspect)
         {
             if (aspect == null)
             {
@@ -30,7 +29,7 @@ namespace cmi.mc.config.SchemaComponents
             AspectsInternal.Add(aspect.Name, aspect);
         }
 
-        public override IEnumerable<Aspect> Traverse()
+        public override IEnumerable<IAspect> Traverse()
         {
             yield return this;
             foreach (var item in Aspects.Values)

@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace cmi.mc.config.Tests.ConfigurationTests
 {
-    [TestClass]
+    [TestFixture]
     public class ConfigurationTests
     {
         private static readonly ConfigurationModel trivialModel = new ConfigurationModel();
@@ -18,28 +18,28 @@ namespace cmi.mc.config.Tests.ConfigurationTests
 
         #region object construction
 
-        [TestMethod]
+        [Test]
         public void Should_ReturnInstance_When_ReadConfigurationFromFile()
         {
             var c = Configuration.ReadFromFile(GetTestDataPath("test.json"), trivialModel);
-            Assert.IsInstanceOfType(c, typeof(Configuration));
+            Assert.IsInstanceOf(typeof(Configuration), c);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(FileNotFoundException))]
+        [Test]
         public void Should_Throw_When_ConfigurationFileIsNotPresent()
         {
-            Configuration.ReadFromFile(GetTestDataPath("notpresent.json"), trivialModel);
+            void D() => Configuration.ReadFromFile(GetTestDataPath("notpresent.json"), trivialModel);
+            Assert.Throws(typeof(FileNotFoundException), D);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_ReturnInstance_When_ReadConfigurationFromString()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\":{},\"tenant2\":{}  }", trivialModel);
-            Assert.IsInstanceOfType(c, typeof(Configuration));
+            Assert.IsInstanceOf(typeof(Configuration), c);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_Throw_When_JsonStringIsEmpty()
         {
             var testvalues = new[] { null, "", " " };
@@ -60,12 +60,11 @@ namespace cmi.mc.config.Tests.ConfigurationTests
             }
         }
 
-
         #endregion
 
         #region tenant handling
 
-        [TestMethod]
+        [Test]
         public void Should_ReturnTenantObjects_When_GetTenantIterator()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\":{},\"tenant2\":{},\"tenant3\":{} }", trivialModel);
@@ -73,7 +72,7 @@ namespace cmi.mc.config.Tests.ConfigurationTests
             CollectionAssert.AreEqual(new[] { "tenant1", "tenant2", "tenant3" }, tenants);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_ContainTenantWithName_When_TenantWithNameIsAdded()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\":{},\"tenant2\":{},\"tenant3\":{} }", trivialModel);
@@ -83,7 +82,7 @@ namespace cmi.mc.config.Tests.ConfigurationTests
             Assert.IsNotNull(c.Single(t => t.Name.Equals("tenant4")));
         }
 
-        [TestMethod]
+        [Test]
         public void Should_ReturnExistingTenant_When_TenantWithDublicateNameIsAdded()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\":{},\"tenant2\":{},\"tenant3\":{} }", trivialModel);
@@ -95,9 +94,6 @@ namespace cmi.mc.config.Tests.ConfigurationTests
         }
 
         #endregion
-
-
-
 
     }
 }

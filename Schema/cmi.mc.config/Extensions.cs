@@ -22,7 +22,7 @@ namespace cmi.mc.config
             return attrs.Any() ? ((InConfigurationName)attrs[0]).Name : en.ToString();
         }
 
-        public static bool HasChildProperty(this JProperty prop, Aspect aspect)
+        public static bool HasChildProperty(this JProperty prop, IAspect aspect)
         {
             if (aspect == null) throw new ArgumentNullException(nameof(aspect));
             return HasChildProperty(prop, aspect.Name);
@@ -40,7 +40,7 @@ namespace cmi.mc.config
             return prop.Value.Children<JProperty>().Any(p => p.Name.Equals(name));
         }
 
-        public static JProperty GetChildProperty(this JProperty prop, Aspect aspect)
+        public static JProperty GetChildProperty(this JProperty prop, IAspect aspect)
         {
             if (aspect == null) throw new ArgumentNullException(nameof(aspect));
             return GetChildProperty(prop, aspect.Name);

@@ -3,15 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using cmi.mc.config.SchemaComponents;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 
-namespace cmi.mc.config
+namespace cmi.mc.config.SchemaComponents
 {
-    public class Tenant
+    public class Tenant : ITenant
     {
         private JProperty _configuration;
         private readonly ConfigurationModel _model;
@@ -44,10 +40,10 @@ namespace cmi.mc.config
             }
         }
 
-        public object GetConfigurationPropertyValue(App app, string aspectPath)
+        public object GetConfigurationProperty(App app, string aspectPath)
         {
             var model = _model.GetAspect(app, aspectPath);
-            if (!(model is SimpleAspect))
+            if (!(model is ISimpleAspect))
             {
                 throw new InvalidOperationException($"{aspectPath} is not a simple aspect and can not be retrieved with this method.");
             }
@@ -61,16 +57,16 @@ namespace cmi.mc.config
             return ((JValue)token)?.Value;
         }
 
-        public T GetConfigurationPropertyValue<T>(App app, string aspectPath)
+        public T GetConfigurationProperty<T>(App app, string aspectPath)
         {
-            var result = GetConfigurationPropertyValue(app, aspectPath);
+            var result = GetConfigurationProperty(app, aspectPath);
             return (result != null) ? (T)result : default(T);
         }
 
         public void SetConfigurationProperty(App app, string aspectPath, object value, bool ensureDependencies = false)
         {
             var model = _model.GetAspect(app, aspectPath);
-            if (!(model is SimpleAspect))
+            if (!(model is ISimpleAspect))
             {
                 throw new InvalidOperationException($"{aspectPath} is not a simple aspect and can not be set with this method.");
             }
@@ -82,13 +78,13 @@ namespace cmi.mc.config
             }
             catch (Exception)
             {
-                ((JObject)_configuration.Root)[Name] = beforeChanges;
+                _configuration.Replace(beforeChanges);
                 _configuration = beforeChanges;
                 throw;
             }
         }
 
-        private void SetConfigurationPropertyInternal(App app, Aspect aspect, object value, bool ensureDependencies)
+        private void SetConfigurationPropertyInternal(App app, IAspect aspect, object value, bool ensureDependencies)
         {
             Debug.Assert(aspect != null);
             // is app enabled
@@ -97,20 +93,18 @@ namespace cmi.mc.config
                 throw new InvalidOperationException($"App {app.ToString()} is not enabled for tenant {Name}");
             }
             // test value
-            if (aspect is SimpleAspect simpleAspect) simpleAspect.TestValue(value);
+            if (aspect is ISimpleAspect simpleAspect) simpleAspect.TestValue(value);
             // test dependencies
             if (aspect.Dependencies.Any())
             {
                 foreach (var dep in aspect.Dependencies)
                 {
-                    try
+                    if (ensureDependencies)
                     {
-                        dep.Verify(_configuration);
+                        dep.Ensure(this);
                     }
-                    catch(Exception)
-                    {
-                        if (ensureDependencies) dep.Ensure(_configuration);
-                        else throw;
+                    else{
+                        dep.Verify(this);
                     }
                 }
             }
@@ -145,13 +139,13 @@ namespace cmi.mc.config
                 currentConfigPart.Value[aspect.Name] = JToken.FromObject(value);
             }
             // set default cca
-            if (aspect is ComplexAspect complexAspect)
+            if (aspect is IComplexAspect complexAspect)
             {
                 SetDefaultCCa(complexAspect, currentConfigPart.GetChildProperty(complexAspect));
             }  
         }
 
-        private static void SetDefaultCCa(ComplexAspect aspect, JProperty configPart)
+        private static void SetDefaultCCa(IComplexAspect aspect, JProperty configPart)
         {
             Debug.Assert(aspect != null);
             Debug.Assert(configPart != null);

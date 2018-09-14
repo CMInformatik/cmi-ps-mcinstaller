@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using cmi.mc.config.SchemaComponents;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 
 namespace cmi.mc.config.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class TenantTests
     {
         private static readonly ConfigurationModel TestModel = new ConfigurationModel();
@@ -23,19 +24,19 @@ namespace cmi.mc.config.Tests
             }
         }
 
-        [TestInitialize()]
+        [SetUp]
         public void TestInit()
         {
             Validator.Arguments = null;
         }
 
-        [ClassInitialize()]
-        public static void ClassInit(TestContext context)
+        [OneTimeSetUp]
+        public static void ClassInit()
         {
             var simple1 = new SimpleAspect("simple1", typeof(string), "simple1");
             var simple2 = new SimpleAspect("simple2", typeof(bool), true);
             var complex1 = new ComplexAspect("complex1");
-            simple1.ValidationAttributes.Add(Validator);
+            simple1.AddValidationAttribute(Validator);
             complex1.AddAspect(simple1);
             complex1.AddAspect(simple2);
 
@@ -47,15 +48,15 @@ namespace cmi.mc.config.Tests
             TestModel[App.Dossierbrowser].AddAspect(complex2);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void Should_RejectValue_When_ValueHasWrongType()
         {
-            var c = Configuration.ReadFromString("{ \"tenant1\": { \"Common\":{}}}", TestModel);
-            c["tenant1"].SetConfigurationProperty(App.Common, "complex1.simple1", new int());
+            var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{}}}", TestModel);
+            void D() => c["tenant1"].SetConfigurationProperty(App.Common, "complex1.simple1", new int());
+            Assert.Throws(typeof(ArgumentException), D);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_ExecuteValidators_When_SetConfigProperty()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{}}}", TestModel);
@@ -63,44 +64,44 @@ namespace cmi.mc.config.Tests
             Assert.AreEqual(Validator.Arguments, "some string");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
+        [Test]
         public void Should_Throw_When_AppIsNotEnabled()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{}}}", TestModel);
-            c["tenant1"].SetConfigurationProperty(App.Dossierbrowser, "complex2.simple3", true);
+            void D() => c["tenant1"].SetConfigurationProperty(App.Dossierbrowser, "complex2.simple3", true);
+            Assert.Throws(typeof(InvalidOperationException), D);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
+        [Test]
         public void Should_Throw_When_AspectPathIsInvalid()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}", TestModel);
-            c["tenant1"].SetConfigurationProperty(App.Dossierbrowser, "complex2.invalid3", "some string");
+            void D() => c["tenant1"].SetConfigurationProperty(App.Dossierbrowser, "complex2.invalid3", "some string");
+            Assert.Throws(typeof(KeyNotFoundException), D);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_ReturnPropertyValue_When_PropertyWasSetBefore()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}", TestModel);
             c["tenant1"].SetConfigurationProperty(App.Dossierbrowser, "complex2.simple3", "some string");
-            var result = c["tenant1"].GetConfigurationPropertyValue(App.Dossierbrowser, "complex2.simple3");
-            var result2 = c["tenant1"].GetConfigurationPropertyValue<string>(App.Dossierbrowser, "complex2.simple3");
-            Assert.IsInstanceOfType(result, typeof(string));
+            var result = c["tenant1"].GetConfigurationProperty(App.Dossierbrowser, "complex2.simple3");
+            var result2 = c["tenant1"].GetConfigurationProperty<string>(App.Dossierbrowser, "complex2.simple3");
+            Assert.IsInstanceOf(typeof(string), result);
             Assert.AreEqual("some string", (string)result);
             Assert.AreEqual("some string", result2);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_ReturnPropertyValue_When_OverrideExistingValue()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"simple3\": \"old\" } }}}", TestModel);
             c["tenant1"].SetConfigurationProperty(App.Dossierbrowser, "complex2.simple3", "new");
-            var result = c["tenant1"].GetConfigurationPropertyValue<string>(App.Dossierbrowser, "complex2.simple3");
+            var result = c["tenant1"].GetConfigurationProperty<string>(App.Dossierbrowser, "complex2.simple3");
             Assert.AreEqual("new", result);
         }
 
-        [TestMethod]
+        [Test]
         public void Should_SetDefaultCca_When_NotCCaIsSet()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}", TestModel);
@@ -109,7 +110,7 @@ namespace cmi.mc.config.Tests
             Assert.IsTrue(((bool)cca.Value));
         }
 
-        [TestMethod]
+        [Test]
         public void Should_DoesNotChangeCca_When_CCaIsSet()
         {
             var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"_replace\": true } }}}", TestModel);

@@ -6,14 +6,14 @@ namespace cmi.mc.config.SchemaComponents
 {
     public class AppSection : ComplexAspect
     {
-        public readonly App App;
+        public App App { get; }
 
         public AppSection(App app) : base(app.ToConfigurationName(), ConfigControlAttribute.NotSet)
         {
             App = app;
         }
 
-        public override void AddAspect(Aspect aspect)
+        public override void AddAspect(IAspect aspect)
         {
             if (aspect == null) throw new ArgumentNullException(nameof(aspect));
             AspectsInternal.Add(aspect.Name, aspect);

@@ -6,13 +6,26 @@ using System.Reflection;
 
 namespace cmi.mc.config.SchemaComponents
 {
-    public class SimpleAspect : Aspect
+    public class SimpleAspect : Aspect, ISimpleAspect
     {
-        public readonly object DefaultValue;
-        public readonly Type Type;
-        public readonly AxSupport AxSupport;
-        public readonly IList<ValidateArgumentsAttribute> ValidationAttributes = new List<ValidateArgumentsAttribute>();
+        private readonly object _defaultValue;
+        private readonly List<ValidateArgumentsAttribute> _validationAttributes = new List<ValidateArgumentsAttribute>();
         private bool? _isRequired = null;
+
+        public SimpleAspect(string name, Type type, object defaultValue, AxSupport axSupport = AxSupport.R16_1) : base(name)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (defaultValue != null && !type.IsInstanceOfType(defaultValue))
+            {
+                throw new ArgumentException(
+                    $"{defaultValue.GetType().FullName} is not convertable to type {type.FullName}",
+                    nameof(defaultValue));
+            }
+
+            _defaultValue = defaultValue;
+            Type = type;
+            AxSupport = axSupport;
+        }
 
         public bool IsRequired
         {
@@ -29,33 +42,25 @@ namespace cmi.mc.config.SchemaComponents
                 }
             }
         }
+        public Type Type { get; }
+        public AxSupport AxSupport { get; }
+        public IReadOnlyList<ValidateArgumentsAttribute> ValidationAttributes => _validationAttributes;
 
-        public SimpleAspect(
-            string name,
-            Type type,
-            object defaultValue,
-            AxSupport axSupport = AxSupport.R16_1
-        ) : base(name)
+        public void AddValidationAttribute(ValidateArgumentsAttribute validator)
         {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-            if (defaultValue != null && !type.IsInstanceOfType(defaultValue))
-            {
-                throw new ArgumentException(
-                    $"{defaultValue.GetType().FullName} is not convertable to type {type.FullName}",
-                    nameof(defaultValue));
-            }
-
-            DefaultValue = defaultValue;
-            Type = type;
-            AxSupport = axSupport;
+            if(validator == null) throw new ArgumentNullException(nameof(validator));
+            _validationAttributes.Add(validator);
         }
 
+        public object GetDefaultValue(ITenant tenant = null) => _defaultValue;
+
+        /// <inheritdoc />
         public void TestValue(object value)
         {
             if (value == null && !IsRequired) return;
             if (value == null) throw new ArgumentNullException(nameof(value), "A value for this aspect is required");
             if (!Type.IsInstanceOfType(value)) throw  new ArgumentException($"{value.GetType().FullName} is not convertable to type {Type.FullName}");
-            foreach (var validator in ValidationAttributes)
+            foreach (var validator in _validationAttributes)
             {
                 var valMethod = validator.GetType()
                     .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).First(x => x.Name == "Validate");
@@ -64,7 +69,7 @@ namespace cmi.mc.config.SchemaComponents
             }
         }
 
-        public override IEnumerable<Aspect> Traverse()
+        public override IEnumerable<IAspect> Traverse()
         {
             yield return this;
         }

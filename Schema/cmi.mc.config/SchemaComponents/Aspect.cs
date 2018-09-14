@@ -1,15 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using cmi.mc.config.AspectDependencies;
 
 namespace cmi.mc.config.SchemaComponents
 {
-    public abstract class Aspect : Element
+    public abstract class Aspect : IAspect
     {
-        public Aspect Parent { get; set; }
-        public Aspect Root => Parent == null ? this : Parent.Root;
+        public IAspect Parent { get; set; }
+        public IAspect Root => Parent == null ? this : Parent.Root;
+        public string Name { get; }
+        protected readonly List<IAspectDependency> DependenciesInteral = new List<IAspectDependency>();
+        public IReadOnlyList<IAspectDependency> Dependencies => DependenciesInteral;
 
-        protected Aspect(string name) : base(name) { }
+        protected Aspect(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
+            Name = name;
+        }
+
+        public void AddDepenency(IAspectDependency dependency)
+        {
+            if (dependency == null) throw new ArgumentNullException(nameof(dependency));
+            DependenciesInteral.Add(dependency);
+        }
 
         public virtual string GetAspectPath()
         {
@@ -29,23 +43,19 @@ namespace cmi.mc.config.SchemaComponents
             if (!IsValidAspectPath(aspectPath)) throw new ArgumentException("Not a valid aspect path", nameof(aspectPath));
         }
 
-        protected virtual List<Aspect> GetParentsInternal()
+        public virtual List<IAspect> GetParents()
         {
-            List<Aspect> parents = null;
-            if (this.Parent != null)
+            List<IAspect> parents = new List<IAspect>();
+            IAspect parent = Parent;
+            while (parent != null)
             {
-                parents = this.Parent.GetParents();
+                parents.Add(parent);
+                parent = parent.Parent;
             }
-            if (parents == null)
-            {
-                parents = new List<Aspect>();
-            }
-            parents.Add(this);
             return parents;
         }
 
-        public virtual List<Aspect> GetParents() => Parent?.GetParentsInternal();
         public override string ToString() => GetAspectPath();
-        public abstract IEnumerable<Aspect> Traverse();
+        public abstract IEnumerable<IAspect> Traverse();
     }
 }

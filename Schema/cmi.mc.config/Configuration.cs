@@ -5,11 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using cmi.mc.config.SchemaComponents;
 using Newtonsoft.Json.Linq;
 
 namespace cmi.mc.config
 {
-    public class Configuration : IEnumerable<Tenant>
+    public class Configuration : IEnumerable<ITenant>
     {
         private readonly JObject _configuration;
         private readonly ConfigurationModel _model;
@@ -63,7 +64,7 @@ namespace cmi.mc.config
         /// </summary>
         /// <param name="name">Name of the tenant</param>
         /// <returns>The new or the already present tenant</returns>
-        public Tenant AddTenant(string name)
+        public ITenant AddTenant(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
             if (!_configuration.ContainsKey(name))
@@ -78,7 +79,7 @@ namespace cmi.mc.config
         /// </summary>
         /// <param name="name">Name of the tenant</param>
         /// <returns>The tenant</returns>
-        public Tenant this[string name]
+        public ITenant this[string name]
         {
             get
             {
@@ -90,7 +91,7 @@ namespace cmi.mc.config
             }
         }
 
-        public IEnumerator<Tenant> GetEnumerator()
+        public IEnumerator<ITenant> GetEnumerator()
         {
             return _configuration.Properties().Select(e => new Tenant(e,_model)).GetEnumerator();
         }

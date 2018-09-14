@@ -11,6 +11,7 @@ namespace cmi.mc.config
     public class ConfigurationModel : IReadOnlyDictionary<App, AppSection>
     {
         private readonly IDictionary<App, AppSection> _internal = new Dictionary<App, AppSection>();
+        public readonly Uri DefaultServiceUrl = new Uri("https://mobile.cmiaxioma.ch/mobileclients/");
 
         public ConfigurationModel()
         {
@@ -18,29 +19,42 @@ namespace cmi.mc.config
             {
                 _internal.Add((App)appValue, new AppSection((App)appValue));
             }
+            // minimal model
+            var api = new ComplexAspect("api");
+            api.AddAspect(new SimpleAspect("server", typeof(Uri), new Uri(DefaultServiceUrl, "mobileclients")) { IsRequired = true });
+            api.AddAspect(new SimpleAspect("public", typeof(string), null) { IsRequired = true });
+            api.AddAspect(new SimpleAspect("private", typeof(string), null) { IsRequired = true });
+            _internal[App.Common].AddAspect(api);
         }
 
-        public Aspect GetAspect(App app, string aspectPath)
+        public IAspect GetAspect(App app, string aspectPath)
         {
             Aspect.ThrowIfInvalidAspectPath(aspectPath);
             var parts = aspectPath.Split('.');
-            Element currentElement = this[app];
+            IAspect currentAspect = this[app];
             foreach (var part in parts)
             {
-                if (currentElement is ComplexAspect)
+                if (currentAspect is IComplexAspect)
                 {
-                    currentElement = ((ComplexAspect)currentElement).Aspects[part];
+                    try
+                    {
+                        currentAspect = ((IComplexAspect) currentAspect).Aspects[part];
+                    }
+                    catch (KeyNotFoundException e)
+                    {
+                        throw new KeyNotFoundException($"{app} does not have a aspect path of {aspectPath}", e);
+                    }
                 }
                 else
                 {
                     throw new KeyNotFoundException($"{app} does not have a aspect path of {aspectPath}");
                 }
             }
-            if (!(currentElement is Aspect))
+            if (!(currentAspect is IAspect))
             {
                 throw new KeyNotFoundException($"{app} does not have a aspect path of {aspectPath}");
             }
-            return (Aspect)currentElement;
+            return (IAspect)currentAspect;
         }
 
         #region IReadOnlyDictionary impl.

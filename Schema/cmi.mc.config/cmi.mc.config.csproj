@@ -50,20 +50,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AspectDecorators\DefaultValueDecorator.cs" />
+    <Compile Include="SchemaComponents\ITenant.cs" />
     <Compile Include="SchemaComponents\AppSection.cs" />
     <Compile Include="SchemaComponents\Aspect.cs" />
     <Compile Include="SchemaComponents\ComplexAspect.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="ConfigurationModel.cs" />
-    <Compile Include="SchemaComponents\Element.cs" />
-    <Compile Include="ElementDependencyNotFulfilled.cs" />
+    <Compile Include="AspectDependencies\AspectDependencyNotFulfilled.cs" />
     <Compile Include="SchemaComponents\Enums.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="SchemaComponents\IElementDependency.cs" />
+    <Compile Include="AspectDependencies\IAspectDependency.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SchemaComponents\IAspect.cs" />
+    <Compile Include="SchemaComponents\IComplexAspect.cs" />
+    <Compile Include="SchemaComponents\ISimpleAspect.cs" />
     <Compile Include="SchemaComponents\SimpleAspect.cs" />
-    <Compile Include="SimpleAspectDependency.cs" />
-    <Compile Include="Tenant.cs" />
+    <Compile Include="AspectDependencies\SimpleAspectDependency.cs" />
+    <Compile Include="SchemaComponents\Tenant.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

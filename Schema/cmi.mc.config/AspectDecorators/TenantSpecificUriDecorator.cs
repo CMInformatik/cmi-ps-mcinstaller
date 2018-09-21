@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Management.Automation;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using cmi.mc.config.AspectDependencies;
@@ -10,55 +10,38 @@ using cmi.mc.config.SchemaComponents;
 
 namespace cmi.mc.config.AspectDecorators
 {
-    public class DefaultValueDecorator : ISimpleAspect
+
+    public class TenantSpecificUriDecorator : ISimpleAspect
     {
         private readonly ISimpleAspect _cap;
-        private readonly string _pattern;
-        private readonly bool _enforceDefaultValue;
+        private readonly string _tenantPlaceholder;
 
-        public DefaultValueDecorator(ISimpleAspect simpleAspect, string enhancePattern = "{defaultvalue}", bool enforceDefaultValue = false)
+        /// <param name="simpleAspect">Aspect to decorate.</param>
+        /// <param name="tenantPlaceholder">When found in the uri, this string is replaced with the tenant name.</param>
+        public TenantSpecificUriDecorator(ISimpleAspect simpleAspect, string tenantPlaceholder = "{tenantname}")
         {
             _cap = simpleAspect ?? throw new ArgumentNullException(nameof(simpleAspect));
-            _pattern = enhancePattern;
-            _enforceDefaultValue = enforceDefaultValue;
 
-            if (_cap.Type != typeof(string))
+            if (_cap.Type != typeof(Uri))
             {
                 throw new ArgumentException(
-                    $"Only aspects with value type {typeof(string).Name} are supported. {_cap.Name} has type {_cap.Type?.Name}.", 
+                    $"Only aspects with value type {typeof(Uri).Name} are supported. {_cap.Name} has type {_cap.Type?.Name}.",
                     nameof(simpleAspect));
             }
+
+            _tenantPlaceholder = string.IsNullOrWhiteSpace(tenantPlaceholder) ? null : tenantPlaceholder;
         }
-
-        public static string TenantNamePlaceholder => "{tenantname}";
-        public static string OriginalDefaultPlaceholder => "{defaultvalue}";
-
-        public static string ServiceBaseUrlPlaceholder => "{servicebaseurl}";
 
         public object GetDefaultValue(ITenant tenant = null)
-        {          
-            if (tenant == null)
-            {
-                return _cap.GetDefaultValue();
-            }
-            Debug.Assert(tenant.ServiceBaseUrl != null);
-            return _pattern
-                .Replace(TenantNamePlaceholder, tenant.Name)
-                .Replace(ServiceBaseUrlPlaceholder, tenant.ServiceBaseUrl.ToString())
-                .Replace(OriginalDefaultPlaceholder, _cap.GetDefaultValue() as string);
-        }
-
-        public void TestValue(object value, ITenant tenant = null)
         {
-            _cap.TestValue(value);
-            if (!_enforceDefaultValue) return;
-
-            var defaultValue = GetDefaultValue(tenant);
-            if (defaultValue == null && value == null) return;
-            if (value == null || !value.Equals(defaultValue))
+            var defaultValue = _cap.GetDefaultValue(tenant);
+            var uri = defaultValue as Uri;
+            if (tenant == null || tenant.ServiceBaseUrl == null || uri == null)
             {
-                throw new ArgumentException($"The value for this property must be '{defaultValue}'");
+                return defaultValue;
             }
+            var tenantSpecific = new Uri(new Uri(tenant.ServiceBaseUrl.GetLeftPart(UriPartial.Authority)), uri.AbsolutePath);
+            return _tenantPlaceholder != null ? new Uri(tenantSpecific.ToString().Replace(_tenantPlaceholder, tenant.Name)) : tenantSpecific;
         }
 
         #region unchanged behavior
@@ -83,8 +66,9 @@ namespace cmi.mc.config.AspectDecorators
         public Type Type => _cap.Type;
         public AxSupport AxSupport => _cap.AxSupport;
         public IReadOnlyList<ValidateArgumentsAttribute> ValidationAttributes => _cap.ValidationAttributes;
+        public void TestValue(object value, ITenant tenant = null) => _cap.TestValue(value, tenant);
         public void AddValidationAttribute(ValidateArgumentsAttribute validator) =>
             _cap.AddValidationAttribute(validator);
-#endregion
+        #endregion
     }
 }

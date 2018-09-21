@@ -6,6 +6,7 @@ namespace cmi.mc.config.SchemaComponents
     {
         ConfigControlAttribute DefaultCca { get; }
         IReadOnlyDictionary<string, IAspect> Aspects { get; }
-        void AddAspect(IAspect aspect);
+        IComplexAspect AddAspect(IAspect aspect);
+        IComplexAspect AddAspect(params IAspect[] aspect);
     }
 }

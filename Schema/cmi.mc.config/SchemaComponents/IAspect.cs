@@ -9,7 +9,8 @@ namespace cmi.mc.config.SchemaComponents
         IReadOnlyList<IAspectDependency> Dependencies { get; }
         IAspect Parent { get; set; }
         IAspect Root { get; }
-        void AddDepenency(IAspectDependency dependency);
+        IAspect AddDependency(IAspectDependency dependency);
+        IAspect AddDependency(params IAspectDependency[] dependency);
         string GetAspectPath();
         List<IAspect> GetParents();
         IEnumerable<IAspect> Traverse();

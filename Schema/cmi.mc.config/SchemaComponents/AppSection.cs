@@ -13,10 +13,11 @@ namespace cmi.mc.config.SchemaComponents
             App = app;
         }
 
-        public override void AddAspect(IAspect aspect)
+        public override IComplexAspect AddAspect(IAspect aspect)
         {
             if (aspect == null) throw new ArgumentNullException(nameof(aspect));
             AspectsInternal.Add(aspect.Name, aspect);
+            return this;
         }
 
         // for now, hide the app section in the aspect path.

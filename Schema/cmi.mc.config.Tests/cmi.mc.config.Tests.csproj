@@ -68,6 +68,7 @@
     <Compile Include="ConfigurationTests\ConfigurationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DefaultValueDecoratorTests.cs" />
+    <Compile Include="TenantSpecificUriDecoratorTests.cs" />
     <Compile Include="TenantTests.cs" />
     <Compile Include="SimpleAspectDependencyTests.cs" />
     <Compile Include="AspectTests.cs" />

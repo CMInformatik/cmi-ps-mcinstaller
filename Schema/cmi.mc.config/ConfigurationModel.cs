@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using cmi.mc.config.AspectDecorators;
+using cmi.mc.config.AspectDependencies;
 using cmi.mc.config.SchemaComponents;
 
 namespace cmi.mc.config
@@ -11,20 +13,94 @@ namespace cmi.mc.config
     public class ConfigurationModel : IReadOnlyDictionary<App, AppSection>
     {
         private readonly IDictionary<App, AppSection> _internal = new Dictionary<App, AppSection>();
-        public readonly Uri DefaultServiceUrl = new Uri("https://mobile.cmiaxioma.ch/mobileclients/");
+        public Uri DefaultServiceUrl { get; private set; } = new Uri("https://mobile.cmiaxioma.ch");
 
-        public ConfigurationModel()
+        public ConfigurationModel(Uri defaultServiceUrl = null)
         {
+            if (defaultServiceUrl != null)
+            {
+                DefaultServiceUrl = new Uri(defaultServiceUrl.Scheme + "://" + defaultServiceUrl.Authority);
+            }
             foreach (var appValue in System.Enum.GetValues(typeof(App)))
             {
                 _internal.Add((App)appValue, new AppSection((App)appValue));
             }
             // minimal model
+
+            // api
             var api = new ComplexAspect("api");
-            api.AddAspect(new SimpleAspect("server", typeof(Uri), new Uri(DefaultServiceUrl, "mobileclients")) { IsRequired = true });
-            api.AddAspect(new SimpleAspect("public", typeof(string), null) { IsRequired = true });
-            api.AddAspect(new SimpleAspect("private", typeof(string), null) { IsRequired = true });
+            api.AddAspect(
+                new TenantSpecificUriDecorator(
+                    new SimpleAspect("server", typeof(Uri), new Uri(DefaultServiceUrl, "mobileclients")) { IsRequired = true }
+            ));
+            api.AddAspect(
+                new DefaultValueDecorator(
+                    new SimpleAspect("public", typeof(string), null) { IsRequired = true },
+                    $"/proxy/{DefaultValueDecorator.TenantNamePlaceholder}pub",
+                    true
+                ));
+            api.AddAspect(
+                new DefaultValueDecorator(
+                    new SimpleAspect("private", typeof(string), null) { IsRequired = true },
+                    $"/proxy/{DefaultValueDecorator.TenantNamePlaceholder}pri",
+                    true
+                ));
+
             _internal[App.Common].AddAspect(api);
+            BuildAppDirModel();
+        }
+
+        private void BuildAppDirModel()
+        {
+            // dossierbrowser
+            var dbDir = new ComplexAspect(App.Dossierbrowser.ToConfigurationName());
+            dbDir.AddDependency(new AppDependency(App.Dossierbrowser));
+            dbDir.AddAspect(
+                new TenantSpecificUriDecorator(
+                    new SimpleAspect("web", typeof(Uri),
+                        new Uri(DefaultServiceUrl, $"{App.Dossierbrowser.ToConfigurationName()}/{{tenantname}}"))
+                ));
+            dbDir.AddAspect(
+                new SimpleAspect("app", typeof(string), "cmidossierbrowser://"),
+                new SimpleAspect("dossierDetail", typeof(string), "/Abstr/{GUID}"));
+
+            // sitzungsvorbereitung
+            var svDir = new ComplexAspect(App.Sitzungsvorbereitung.ToConfigurationName());
+            svDir.AddDependency(new AppDependency(App.Sitzungsvorbereitung));
+            svDir.AddAspect(
+                new TenantSpecificUriDecorator(
+                    new SimpleAspect("web", typeof(Uri),
+                        new Uri(DefaultServiceUrl, $"{App.Sitzungsvorbereitung.ToConfigurationName()}/{{tenantname}}"))
+                ));
+            svDir.AddAspect(
+                new SimpleAspect("app", typeof(string), "cmisitzungsvorbereitung://"),
+                new SimpleAspect("sitzungDetail", typeof(string), "/{Gremium}/{Jahr}/{GUID}"),
+                new SimpleAspect("traktandumDetail", typeof(string), "/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}"));
+
+            // zusammenarbeit dritte
+            var zdDir = new ComplexAspect(App.Zusammenarbeitdritte.ToConfigurationName());
+            zdDir.AddDependency(new AppDependency(App.Zusammenarbeitdritte));
+            zdDir.AddAspect(
+                new TenantSpecificUriDecorator(
+                    new SimpleAspect("web", typeof(Uri),
+                        new Uri(DefaultServiceUrl, $"{App.Zusammenarbeitdritte.ToConfigurationName()}/{{tenantname}}"))
+                ));
+            zdDir.AddAspect(
+                new SimpleAspect("app", typeof(string), "cmisitzungsvorbereitung://"),
+                new SimpleAspect("aktivitaetDetail", typeof(string), "/Aktivitaet/{GUID}")
+            );
+
+            _internal[App.Common].AddAspect(new ComplexAspect("appDirectory").AddAspect(dbDir, svDir, zdDir));
+        }
+
+        public T GetAspect<T>(App app, string aspectPath) where T : IAspect
+        {
+            var r = GetAspect(app, aspectPath);
+            if (!(r is T))
+            {
+                throw new InvalidOperationException($"{aspectPath} is not a {typeof(T).Name}.");
+            }
+            return (T) r;
         }
 
         public IAspect GetAspect(App app, string aspectPath)
@@ -38,7 +114,7 @@ namespace cmi.mc.config
                 {
                     try
                     {
-                        currentAspect = ((IComplexAspect) currentAspect).Aspects[part];
+                        currentAspect = ((IComplexAspect)currentAspect).Aspects[part];
                     }
                     catch (KeyNotFoundException e)
                     {
@@ -49,10 +125,6 @@ namespace cmi.mc.config
                 {
                     throw new KeyNotFoundException($"{app} does not have a aspect path of {aspectPath}");
                 }
-            }
-            if (!(currentAspect is IAspect))
-            {
-                throw new KeyNotFoundException($"{app} does not have a aspect path of {aspectPath}");
             }
             return (IAspect)currentAspect;
         }

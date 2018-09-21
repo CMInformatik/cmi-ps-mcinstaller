@@ -17,7 +17,8 @@ namespace cmi.mc.config.SchemaComponents
         /// Some aspects can accept null values, some won't.
         /// </summary>
         /// <param name="value">The value to test</param>
-        void TestValue(object value);
+        /// <param name="tenant">Allows to test the value for a specific tenant</param>
+        void TestValue(object value, ITenant tenant = null);
 
         /// <summary>
         /// Returns the default value for this aspect.

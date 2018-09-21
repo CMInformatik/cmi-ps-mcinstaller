@@ -14,6 +14,7 @@ namespace cmi.mc.config.SchemaComponents
         private static readonly IEnumerable<string> CcaNames = Enum.GetValues(typeof(ConfigControlAttribute)).Cast<ConfigControlAttribute>().Select(e => e.ToConfigurationName());
 
         public string Name => _configuration.Name;
+        public Uri ServiceBaseUrl { get; private set; }
 
         internal Tenant(JProperty configuration, ConfigurationModel model)
         {
@@ -27,54 +28,26 @@ namespace cmi.mc.config.SchemaComponents
             {
                 throw new ArgumentNullException(nameof(configuration.Name));
             }
+
+            if (HasConfigurationProperty(App.Common, "api.server"))
+            {
+                var uri = GetConfigurationProperty<Uri>(App.Common, "api.server");
+                ServiceBaseUrl = new Uri(uri.Scheme + "://" + uri.Authority);
+            }
+            else
+            {
+                ServiceBaseUrl = _model.DefaultServiceUrl;
+            }            
+            if(!IsEnabled(App.Common)) RevertChangesOnFailure(() => Enable(App.Common));
         }
 
-        public bool IsEnabled(App app) => _configuration.HasChildProperty(app);
-
-        public void Enable(App app, bool ensureDependencies = false)
+        private void RevertChangesOnFailure(Action action)
         {
-            // ToDO: Test dependencies
-            if (!IsEnabled(app))
-            {
-                _configuration.Add(new JProperty(app.ToConfigurationName(), null));
-            }
-        }
-
-        public object GetConfigurationProperty(App app, string aspectPath)
-        {
-            var model = _model.GetAspect(app, aspectPath);
-            if (!(model is ISimpleAspect))
-            {
-                throw new InvalidOperationException($"{aspectPath} is not a simple aspect and can not be retrieved with this method.");
-            }
-            if (!IsEnabled(app)) return null;
-            var xpath = $"$.{Name}.{app.ToConfigurationName()}.{aspectPath}";
-            var token = _configuration.Root.SelectTokens(xpath).SingleOrDefault();
-            if (token != null && !(token is JValue))
-            {
-                throw new InvalidDataException($"A json value ({nameof(JValue)}) was expected at path {xpath}, but a {token.GetType().Name} was found.");
-            }
-            return ((JValue)token)?.Value;
-        }
-
-        public T GetConfigurationProperty<T>(App app, string aspectPath)
-        {
-            var result = GetConfigurationProperty(app, aspectPath);
-            return (result != null) ? (T)result : default(T);
-        }
-
-        public void SetConfigurationProperty(App app, string aspectPath, object value, bool ensureDependencies = false)
-        {
-            var model = _model.GetAspect(app, aspectPath);
-            if (!(model is ISimpleAspect))
-            {
-                throw new InvalidOperationException($"{aspectPath} is not a simple aspect and can not be set with this method.");
-            }
-
+            Debug.Assert(action != null);
             var beforeChanges = (JProperty)_configuration.DeepClone();
             try
             {
-                SetConfigurationPropertyInternal(app, model, value, ensureDependencies);
+                action.Invoke();
             }
             catch (Exception)
             {
@@ -84,16 +57,143 @@ namespace cmi.mc.config.SchemaComponents
             }
         }
 
+        public bool IsEnabled(App app) => _configuration.HasChildProperty(app);
+
+        public void Enable(App app, bool ensureDependencies = false)
+        {
+            RevertChangesOnFailure(() =>
+            {
+                foreach (var dep in _model[app].Dependencies)
+                {
+                    if (ensureDependencies)
+                    {
+                        dep.Ensure(this, app, _model[app]);
+                    }
+                    else
+                    {
+                        dep.Verify(this,  app, _model[app]);
+                    }
+                }
+            });
+            if (!IsEnabled(app))
+            {
+                RevertChangesOnFailure(() =>
+                {
+                    _configuration.Value[app.ToConfigurationName()] = JToken.FromObject(new object());
+                    foreach (var aspect in _model[app].Traverse().OfType<ISimpleAspect>().Where(a => a.IsRequired))
+                    {
+                        SetConfigurationProperty(app, aspect.GetAspectPath(), ensureDependencies);
+                    }
+                    // update app directory
+                    try
+                    {
+                        var appDirAspect = _model.GetAspect<IComplexAspect>(App.Common, $"appDirectory.{app.ToConfigurationName()}");
+                        foreach(var aspect in appDirAspect.Traverse().OfType<ISimpleAspect>()) {
+                            SetConfigurationProperty(App.Common, aspect.GetAspectPath());
+                        }
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        // app does not have appDirectory?
+                    }
+                });
+            }
+        }
+
+        public void Disable(App app)
+        {
+            if (!IsEnabled(app)) return;
+            RevertChangesOnFailure(() =>
+            {
+                _configuration.Value[app.ToConfigurationName()].Remove();
+                // update app directory
+                RemoveConfigurationProperty(App.Common, $"appDirectory.{app.ToConfigurationName()}");
+            });
+        }
+
+        public bool HasConfigurationProperty(App app, string aspectPath)
+        {
+            var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
+            var xpath = $"$.{Name}.{app.ToConfigurationName()}.{model.GetAspectPath()}";
+            var token = _configuration.Root.SelectTokens(xpath).SingleOrDefault();
+            return !(token is null);
+        }
+
+        public void RemoveConfigurationProperty(App app, string aspectPath)
+        {
+            var model = _model.GetAspect<IAspect>(app, aspectPath);
+            if (!IsEnabled(app)) return;
+
+            var xpath = $"$.{Name}.{app.ToConfigurationName()}.{model.GetAspectPath()}";
+            var token = _configuration.Root.SelectTokens(xpath).SingleOrDefault();
+            if (token != null && !(token is JValue))
+            {
+                throw new InvalidDataException($"A json value ({nameof(JValue)}) was expected at path {xpath}, but a {token.GetType().Name} was found.");
+            }
+            token?.Remove();
+        }
+
+        public object GetConfigurationProperty(App app, string aspectPath)
+        {
+            var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
+            if (!IsEnabled(app)) return null;
+            var xpath = $"$.{Name}.{app.ToConfigurationName()}.{model.GetAspectPath()}";
+            var token = _configuration.Root.SelectTokens(xpath).SingleOrDefault();
+            if (token != null && !(token is JValue))
+            {
+                throw new InvalidDataException($"A json value ({nameof(JValue)}) was expected at path {xpath}, but a {token.GetType().Name} was found.");
+            }
+            return (token as JValue)?.Value;
+        }
+
+        public T GetConfigurationProperty<T>(App app, string aspectPath)
+        {
+            var result = GetConfigurationProperty(app, aspectPath);
+
+            // no implicit cast from string to uri, but json reader delivers string, when uri is expected
+            if (typeof(T) == typeof(Uri) && result is string s)
+            {
+                result = new Uri(s);
+            }
+
+            return (result != null) ? (T)result : default(T);
+        }
+
+        /// <summary>
+        /// Sets a configuration property to its default value.
+        /// </summary>
+        /// <param name="app">The app of the property.</param>
+        /// <param name="aspectPath">Path of the property.</param>
+        /// <param name="ensureDependencies">Set dependencies the required values.</param>
+        public void SetConfigurationProperty(App app, string aspectPath, bool ensureDependencies = false)
+        {
+            var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
+            RevertChangesOnFailure(() => SetConfigurationPropertyInternal(app, model, model.GetDefaultValue(this), ensureDependencies));
+        }
+
+        /// <summary>
+        /// Sets a configuration property to the specified value.
+        /// </summary>
+        /// <param name="app">The app of the property.</param>
+        /// <param name="aspectPath">Path of the property.</param>
+        /// <param name="value">Value of the property</param>
+        /// <param name="ensureDependencies">Set dependencies the required values.</param>
+        public void SetConfigurationProperty(App app, string aspectPath, object value, bool ensureDependencies = false)
+        {
+            var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
+            RevertChangesOnFailure(() => SetConfigurationPropertyInternal(app, model, value, ensureDependencies));
+        }
+
         private void SetConfigurationPropertyInternal(App app, IAspect aspect, object value, bool ensureDependencies)
         {
             Debug.Assert(aspect != null);
             // is app enabled
             if (!IsEnabled(app))
             {
-                throw new InvalidOperationException($"App {app.ToString()} is not enabled for tenant {Name}");
+                throw new InvalidOperationException($"RequiredApp {app.ToString()} is not enabled for tenant {Name}");
             }
             // test value
-            if (aspect is ISimpleAspect simpleAspect) simpleAspect.TestValue(value);
+            if (aspect is ISimpleAspect simpleAspect) simpleAspect.TestValue(value, this);
             // test dependencies
             if (aspect.Dependencies.Any())
             {
@@ -101,10 +201,11 @@ namespace cmi.mc.config.SchemaComponents
                 {
                     if (ensureDependencies)
                     {
-                        dep.Ensure(this);
+                        dep.Ensure(this, app, aspect);
                     }
-                    else{
-                        dep.Verify(this);
+                    else
+                    {
+                        dep.Verify(this, app, aspect);
                     }
                 }
             }
@@ -142,7 +243,7 @@ namespace cmi.mc.config.SchemaComponents
             if (aspect is IComplexAspect complexAspect)
             {
                 SetDefaultCCa(complexAspect, currentConfigPart.GetChildProperty(complexAspect));
-            }  
+            }
         }
 
         private static void SetDefaultCCa(IComplexAspect aspect, JProperty configPart)

@@ -55,7 +55,7 @@ namespace cmi.mc.config.SchemaComponents
         public object GetDefaultValue(ITenant tenant = null) => _defaultValue;
 
         /// <inheritdoc />
-        public void TestValue(object value)
+        public void TestValue(object value, ITenant tenant = null)
         {
             if (value == null && !IsRequired) return;
             if (value == null) throw new ArgumentNullException(nameof(value), "A value for this aspect is required");

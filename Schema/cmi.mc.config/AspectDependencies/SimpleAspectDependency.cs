@@ -6,44 +6,57 @@ namespace cmi.mc.config.AspectDependencies
     public class SimpleAspectDependency : IAspectDependency
     {
         private readonly App _app;
-        private readonly ISimpleAspect _aspect;
+        private readonly ISimpleAspect _otherAspect;
         private readonly object _value;
+        private readonly bool _requiresSpecificValue;
 
         public SimpleAspectDependency(App app, ISimpleAspect aspect, object value)
         {
-            _aspect = aspect ?? throw new ArgumentNullException(nameof(aspect));
+            _otherAspect = aspect ?? throw new ArgumentNullException(nameof(aspect));
             _app = app;
             _value = value;
-            _aspect.TestValue(value);
+            _otherAspect.TestValue(value);
+            _requiresSpecificValue = true;
+        }
+        public SimpleAspectDependency(App app, ISimpleAspect aspect)
+        {
+            _otherAspect = aspect ?? throw new ArgumentNullException(nameof(aspect));
+            _app = app;
+            _value = null;
+            _requiresSpecificValue = false;
         }
 
-        private void VerifyInternal(object currentValue)
+        public void Verify(ITenant tenant, App app, IAspect aspect)
         {
+            if (!_requiresSpecificValue)
+            {
+                if (!tenant.HasConfigurationProperty(_app, _otherAspect.GetAspectPath()))
+                {
+                    throw new AspectDependencyNotFulfilled($"The dependency {_otherAspect.GetAspectPath()} is not set");
+                }
+                return;
+            }
+
+            if (tenant == null) throw new ArgumentNullException(nameof(tenant));
+            var currentValue = tenant.GetConfigurationProperty(_app, _otherAspect.GetAspectPath());
+
             if (currentValue == null && _value == null) return;
             if (currentValue == null || !currentValue.Equals(_value))
             {
-                throw new AspectDependencyNotFulfilled($"The dependency {_aspect.GetAspectPath()} does not have the required value of {_value}.");
+                throw new AspectDependencyNotFulfilled($"The dependency {_otherAspect.GetAspectPath()} does not have the required value of {_value}.");
             }
         }
 
-        public void Verify(ITenant tenant)
+        public void Ensure(ITenant tenant, App app, IAspect aspect)
         {
-            if (tenant == null) throw new ArgumentNullException(nameof(tenant));
-            var currentValue = tenant.GetConfigurationProperty(_app, _aspect.GetAspectPath());
-            VerifyInternal(currentValue);
-        }
-
-        public void Ensure(ITenant tenant)
-        {
-            if (tenant == null) throw new ArgumentNullException(nameof(tenant));
-            var currentValue = tenant.GetConfigurationProperty(_app, _aspect.GetAspectPath());
             try
             {
-                VerifyInternal(currentValue);
+                Verify(tenant, app, aspect);
             }
             catch (AspectDependencyNotFulfilled)
             {
-                tenant.SetConfigurationProperty(_app, _aspect.GetAspectPath(), _value, true);
+                var value = _requiresSpecificValue ? _value : _otherAspect.GetDefaultValue(tenant);
+                tenant.SetConfigurationProperty(_app, _otherAspect.GetAspectPath(), value, true);
             }
         }
     }

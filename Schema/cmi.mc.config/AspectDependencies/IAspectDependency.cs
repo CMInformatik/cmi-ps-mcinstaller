@@ -4,7 +4,7 @@ namespace cmi.mc.config.AspectDependencies
 {
     public interface IAspectDependency
     {
-        void Verify(ITenant tenant);
-        void Ensure(ITenant tenant);
+        void Verify(ITenant tenant, App app, IAspect aspect);
+        void Ensure(ITenant tenant, App app, IAspect aspect);
     }
 }

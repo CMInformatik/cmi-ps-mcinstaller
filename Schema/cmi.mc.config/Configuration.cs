@@ -27,7 +27,7 @@ namespace cmi.mc.config
             _model = model ?? throw new ArgumentNullException(nameof(model));
         }
 
-        #region read and write json
+#region read and write json
 
         public static Configuration ReadFromFile(string path, ConfigurationModel model)
         {
@@ -55,7 +55,7 @@ namespace cmi.mc.config
 
         public override string ToString() => _configuration.ToString();
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Adds an empty new tenant to the configuration.

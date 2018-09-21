@@ -48,6 +48,33 @@ namespace cmi.mc.config.Tests
             TestModel[App.Dossierbrowser].AddAspect(complex2);
         }
 
+        #region service base url
+        [Test]
+        public void Should_UseUrlFromConfig_When_ServerPropertyIsSet()
+        {
+            var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{ \"api\": { \"server\": \"https://my.service.ch:6000/mobileclients\"}}}}", TestModel);            
+            Assert.AreEqual("https://my.service.ch:6000/", c["tenant1"].ServiceBaseUrl.ToString());
+        }
+
+        [Test]
+        public void Should_UseKnownDefaultUrl_When_ServerPropertyIsNotSet()
+        {
+            var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{ \"api\": {}}}}", TestModel);
+            Assert.AreEqual(TestModel.DefaultServiceUrl, c["tenant1"].ServiceBaseUrl);
+        }
+
+        [Test]
+        public void Should_EnablesCommonApp_When_IsNotPresent()
+        {
+            var c = Configuration.ReadFromString("{ \"tenant1\": {}}", TestModel);
+            Assert.That(c["tenant1"].IsEnabled(App.Common), Is.True);
+            Assert.That(c["tenant1"].GetConfigurationProperty(App.Common, "api.server").ToString(), Is.EqualTo($"{TestModel.DefaultServiceUrl}mobileclients"));
+            Assert.That(c["tenant1"].IsEnabled(App.Common), Is.True);
+        }
+
+        #endregion
+
+        #region Get/SetConfigurationProperty
         [Test]
         public void Should_RejectValue_When_ValueHasWrongType()
         {
@@ -122,6 +149,17 @@ namespace cmi.mc.config.Tests
 
             Assert.IsNull(extend);
             Assert.IsTrue((bool)replace.Value);
+        }
+        #endregion
+
+        [Test]
+        public void Should_UpdateAppDirectory_When_EnabledApp()
+        {
+            var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{} }}", TestModel);
+            c["tenant1"].Enable(App.Dossierbrowser);
+
+            var o = JObject.Parse(c.ToString());
+            Assert.That(()=> o.SelectTokens("$.tenant1.common.appDirectory.dossierbrowser").Single(), Is.Not.Null);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using cmi.mc.config.AspectDependencies;
 
@@ -19,10 +20,29 @@ namespace cmi.mc.config.SchemaComponents
             Name = name;
         }
 
-        public void AddDepenency(IAspectDependency dependency)
+        public IAspect AddDependency(IAspectDependency dependency)
         {
             if (dependency == null) throw new ArgumentNullException(nameof(dependency));
             DependenciesInteral.Add(dependency);
+            return this;
+        }
+
+        public IAspect AddDependency(params IAspectDependency[] dependency)
+        {
+            var exceptions = new List<Exception>();
+            if (dependency == null) return this;
+            foreach (var d in dependency)
+            {
+                try
+                {
+                    AddDependency(d);
+                }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
+                }
+            }
+            return exceptions.Any() ? throw new AggregateException(exceptions) : this;
         }
 
         public virtual string GetAspectPath()

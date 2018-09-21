@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace cmi.mc.config.SchemaComponents
 {
@@ -15,7 +16,7 @@ namespace cmi.mc.config.SchemaComponents
             DefaultCca = defaultCca;
         }
 
-        public virtual void AddAspect(IAspect aspect)
+        public virtual IComplexAspect AddAspect(IAspect aspect)
         {
             if (aspect == null)
             {
@@ -27,6 +28,25 @@ namespace cmi.mc.config.SchemaComponents
             }
             aspect.Parent = this;
             AspectsInternal.Add(aspect.Name, aspect);
+            return this;
+        }
+
+        public IComplexAspect AddAspect(params IAspect[] aspect)
+        {
+            var exceptions = new List<Exception>();
+            if (aspect == null) return this;
+            foreach (var a in aspect)
+            {
+                try
+                {
+                    AddAspect(a);
+                }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
+                }
+            }
+            return exceptions.Any() ? throw new AggregateException(exceptions) : this;
         }
 
         public override IEnumerable<IAspect> Traverse()

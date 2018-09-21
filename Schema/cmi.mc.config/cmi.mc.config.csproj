@@ -51,6 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AspectDecorators\DefaultValueDecorator.cs" />
+    <Compile Include="AspectDecorators\TenantSpecificUriDecorator.cs" />
+    <Compile Include="AspectDependencies\AppDependency.cs" />
     <Compile Include="SchemaComponents\ITenant.cs" />
     <Compile Include="SchemaComponents\AppSection.cs" />
     <Compile Include="SchemaComponents\Aspect.cs" />

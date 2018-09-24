@@ -88,13 +88,11 @@ namespace cmi.mc.config.SchemaComponents
                     try
                     {
                         var appDirAspect = _model.GetAspect<IComplexAspect>(App.Common, $"appDirectory.{app.ToConfigurationName()}");
-                        foreach(var aspect in appDirAspect.Traverse().OfType<ISimpleAspect>()) {
-                            SetConfigurationProperty(App.Common, aspect.GetAspectPath());
-                        }
+                        SetConfigurationProperty(App.Common, appDirAspect.GetAspectPath());
                     }
                     catch (KeyNotFoundException)
                     {
-                        // app does not have appDirectory?
+                        // app does not have an appDirectory?
                     }
                 });
             }
@@ -161,14 +159,33 @@ namespace cmi.mc.config.SchemaComponents
 
         /// <summary>
         /// Sets a configuration property to its default value.
+        /// If the property is a complex property, all child properties will be set to default values.
         /// </summary>
         /// <param name="app">The app of the property.</param>
         /// <param name="aspectPath">Path of the property.</param>
         /// <param name="ensureDependencies">Set dependencies the required values.</param>
         public void SetConfigurationProperty(App app, string aspectPath, bool ensureDependencies = false)
         {
-            var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
-            RevertChangesOnFailure(() => SetConfigurationPropertyInternal(app, model, model.GetDefaultValue(this), ensureDependencies));
+            var model = _model.GetAspect<IAspect>(app, aspectPath);
+            switch (model)
+            {
+                case ISimpleAspect simple:
+                    var defaultValue = simple.GetDefaultValue(this);
+                    RevertChangesOnFailure(() => SetConfigurationPropertyInternal(app, model, defaultValue, ensureDependencies));
+                    break;
+                case IComplexAspect complex:
+                    void Action()
+                    {
+                        foreach (var aspect in complex.Traverse().OfType<ISimpleAspect>())
+                        {
+                            SetConfigurationPropertyInternal(app, model, aspect.GetDefaultValue(this), ensureDependencies);
+                        }
+                    }
+                    RevertChangesOnFailure(Action);
+                    break;
+                default:
+                    throw new NotSupportedException($"This method does not support aspect type {model.GetType().Name}.");
+            }
         }
 
         /// <summary>
@@ -210,39 +227,41 @@ namespace cmi.mc.config.SchemaComponents
                 }
             }
 
-            // create parent aspects
-            var currentConfigPart = _configuration.GetChildProperty(app);
-            Debug.Assert(currentConfigPart != null);
+            JProperty parentConfigPart;
+            // get parent property
             if (aspect.Parent != null)
             {
-                foreach (var parentAspect in aspect.GetParents())
+                var xpath = $"$.{_configuration.Path}.{app.ToConfigurationName()}.{aspect.Parent.GetAspectPath()}";
+                // is parent present?
+                if (_configuration.Root.SelectTokens(xpath).SingleOrDefault() == null)
                 {
-                    if (!currentConfigPart.HasChildProperty(parentAspect))
-                    {
-                        SetConfigurationPropertyInternal(app, parentAspect, new object(), ensureDependencies);
-                    }
-
-                    currentConfigPart = currentConfigPart.GetChildProperty(parentAspect);
-                    Debug.Assert(currentConfigPart != null);
+                    // create parent
+                    SetConfigurationPropertyInternal(app, aspect.Parent, new object(), ensureDependencies);
                 }
+                // parent property should now exists
+                parentConfigPart = (JProperty)_configuration.Root.SelectTokens(xpath).Single().Parent;
             }
+            else
+            {
+                parentConfigPart = _configuration.GetChildProperty(app);
+            }
+            Debug.Assert(parentConfigPart != null);
 
-            // create aspect
-            var property = currentConfigPart.GetChildProperty(aspect);
-            if (property != null)
+            // create property
+            if(parentConfigPart.HasChildProperty(aspect))
             {
                 // property is already present. Overwriting
-                property.Value = new JValue(value);
+                parentConfigPart.GetChildProperty(aspect).Value = new JValue(value);
             }
             else
             {
                 // adding new property
-                currentConfigPart.Value[aspect.Name] = JToken.FromObject(value);
+                parentConfigPart.Value[aspect.Name] = JToken.FromObject(value);
             }
             // set default cca
             if (aspect is IComplexAspect complexAspect)
             {
-                SetDefaultCCa(complexAspect, currentConfigPart.GetChildProperty(complexAspect));
+                SetDefaultCCa(complexAspect, parentConfigPart.GetChildProperty(complexAspect));
             }
         }
 

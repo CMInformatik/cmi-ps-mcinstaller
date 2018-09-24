@@ -12,7 +12,6 @@ namespace cmi.mc.config.SchemaComponents
         IAspect AddDependency(IAspectDependency dependency);
         IAspect AddDependency(params IAspectDependency[] dependency);
         string GetAspectPath();
-        List<IAspect> GetParents();
         IEnumerable<IAspect> Traverse();
     }
 }

@@ -63,18 +63,6 @@ namespace cmi.mc.config.SchemaComponents
             if (!IsValidAspectPath(aspectPath)) throw new ArgumentException("Not a valid aspect path", nameof(aspectPath));
         }
 
-        public virtual List<IAspect> GetParents()
-        {
-            List<IAspect> parents = new List<IAspect>();
-            IAspect parent = Parent;
-            while (parent != null)
-            {
-                parents.Add(parent);
-                parent = parent.Parent;
-            }
-            return parents;
-        }
-
         public override string ToString() => GetAspectPath();
         public abstract IEnumerable<IAspect> Traverse();
     }

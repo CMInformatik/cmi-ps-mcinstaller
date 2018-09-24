@@ -30,23 +30,5 @@ namespace cmi.mc.config.Tests
             TestModel[App.Common].AddAspect(complex1);
             Leaf = simple1;
         }
-        [Test]
-        public void Should_ReturnParentsInRootLastOrder_When_GetParents()
-        {
-            var p = Leaf.GetParents();
-            Assert.That(p, Has.Exactly(5).Items);
-            Assert.That(p.Last(), Is.SameAs(Leaf.Root));
-            Assert.That(p.First(), Is.SameAs(Leaf.Parent));
-            Assert.That(p.Select(i => i.Name), Is.Ordered.Descending);
-        }
-        [Test]
-        public void Should_DoesNotContainSelf_When_GetParents()
-        {
-            var p1 = Leaf.GetParents();
-            var p2 = Leaf.Root.GetParents();
-
-            Assert.That(p1, Does.Not.Contain(Leaf));
-            Assert.That(p2, Does.Not.Contain(Leaf.Root));
-        }
     }
 }

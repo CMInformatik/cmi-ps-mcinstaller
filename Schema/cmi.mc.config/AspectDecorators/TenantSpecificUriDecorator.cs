@@ -56,7 +56,6 @@ namespace cmi.mc.config.AspectDecorators
         public IAspect AddDependency(IAspectDependency dependency) => _cap.AddDependency(dependency);
         public IAspect AddDependency(params IAspectDependency[] dependency) => _cap.AddDependency(dependency);
         public string GetAspectPath() => _cap.GetAspectPath();
-        public List<IAspect> GetParents() => _cap.GetParents();
         public IEnumerable<IAspect> Traverse() => _cap.Traverse();
         public bool IsRequired
         {

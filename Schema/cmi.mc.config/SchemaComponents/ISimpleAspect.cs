@@ -13,19 +13,21 @@ namespace cmi.mc.config.SchemaComponents
 
         /// <summary>
         /// Tests if the given value is valid for this aspect.
-        /// Throws expection when the value is not valid.
+        /// Throws exception when the value is not valid.
         /// Some aspects can accept null values, some won't.
         /// </summary>
         /// <param name="value">The value to test</param>
         /// <param name="tenant">Allows to test the value for a specific tenant</param>
-        void TestValue(object value, ITenant tenant = null);
+        /// <param name="platform">Allows to test the value for a specific platform</param>
+        void TestValue(object value, ITenant tenant = null, Platform platform = Platform.Unspecified);
 
         /// <summary>
         /// Returns the default value for this aspect.
         /// </summary>
         /// <param name="tenant">The default value for a specific tenant. Can be null.</param>
+        /// <param name="platform">The default for a specific platform.</param>
         /// <returns>The default value.</returns>
-        object GetDefaultValue(ITenant tenant = null);
+        object GetDefaultValue(ITenant tenant = null, Platform platform = Platform.Unspecified);
 
         void AddValidationAttribute(ValidateArgumentsAttribute validator);
 

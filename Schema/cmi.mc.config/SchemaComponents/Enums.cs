@@ -15,6 +15,14 @@ namespace cmi.mc.config.SchemaComponents
         public override string ToString() => Name;
     }
 
+    public enum Platform
+    {
+        [InConfigurationName("web")]
+        Web,
+        [InConfigurationName("app")]
+        App,
+        Unspecified
+    }
 
     public enum App
     {

@@ -21,7 +21,7 @@ namespace cmi.mc.config.AspectDependencies
         {
             Debug.Assert(tenant != null);
             Debug.Assert(aspect != null);
-            if (!tenant.IsEnabled(_requiredApp))
+            if (!tenant.Has(_requiredApp))
             {
                 throw new AspectDependencyNotFulfilled($"{aspect.GetAspectPath()}:{_requiredApp} requires to be enabled when this property is set.");
             }
@@ -31,9 +31,9 @@ namespace cmi.mc.config.AspectDependencies
         {
             Debug.Assert(tenant != null);
             Debug.Assert(aspect != null);
-            if (!tenant.IsEnabled(_requiredApp))
+            if (!tenant.Has(_requiredApp))
             {
-                tenant.Enable(_requiredApp);
+                tenant.Add(_requiredApp);
             }
         }
     }

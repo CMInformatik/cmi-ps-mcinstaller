@@ -8,7 +8,7 @@ namespace cmi.mc.config.SchemaComponents
 {
     public class SimpleAspect : Aspect, ISimpleAspect
     {
-        private readonly object _defaultValue;
+        private readonly IDictionary<Platform, object> _defaultValue = new Dictionary<Platform, object>();
         private readonly List<ValidateArgumentsAttribute> _validationAttributes = new List<ValidateArgumentsAttribute>();
         private bool? _isRequired = null;
 
@@ -22,7 +22,7 @@ namespace cmi.mc.config.SchemaComponents
                     nameof(defaultValue));
             }
 
-            _defaultValue = defaultValue;
+            _defaultValue.Add(Platform.Unspecified, defaultValue);
             Type = type;
             AxSupport = axSupport;
         }
@@ -52,10 +52,22 @@ namespace cmi.mc.config.SchemaComponents
             _validationAttributes.Add(validator);
         }
 
-        public object GetDefaultValue(ITenant tenant = null) => _defaultValue;
+        public void SetDefaultValue(Platform platform, object value)
+        {
+            if (_defaultValue.ContainsKey(platform))
+            {
+                throw new InvalidOperationException($"The default value for {platform} is already set.");
+            }          
+            _defaultValue.Add(platform, value);
+        }
+
+        public object GetDefaultValue(ITenant tenant = null, Platform platform = Platform.Unspecified)
+        {
+            return _defaultValue.ContainsKey(platform)? _defaultValue[platform] : _defaultValue[Platform.Unspecified];
+        }
 
         /// <inheritdoc />
-        public void TestValue(object value, ITenant tenant = null)
+        public void TestValue(object value, ITenant tenant = null, Platform platform = Platform.Unspecified)
         {
             if (value == null && !IsRequired) return;
             if (value == null) throw new ArgumentNullException(nameof(value), "A value for this aspect is required");

@@ -32,9 +32,9 @@ namespace cmi.mc.config.AspectDecorators
             _tenantPlaceholder = string.IsNullOrWhiteSpace(tenantPlaceholder) ? null : tenantPlaceholder;
         }
 
-        public object GetDefaultValue(ITenant tenant = null)
+        public object GetDefaultValue(ITenant tenant = null, Platform platform = Platform.Unspecified)
         {
-            var defaultValue = _cap.GetDefaultValue(tenant);
+            var defaultValue = _cap.GetDefaultValue(tenant, platform);
             var uri = defaultValue as Uri;
             if (tenant == null || tenant.ServiceBaseUrl == null || uri == null)
             {
@@ -65,7 +65,7 @@ namespace cmi.mc.config.AspectDecorators
         public Type Type => _cap.Type;
         public AxSupport AxSupport => _cap.AxSupport;
         public IReadOnlyList<ValidateArgumentsAttribute> ValidationAttributes => _cap.ValidationAttributes;
-        public void TestValue(object value, ITenant tenant = null) => _cap.TestValue(value, tenant);
+        public void TestValue(object value, ITenant tenant = null, Platform platform = Platform.Unspecified) => _cap.TestValue(value, tenant, platform);
         public void AddValidationAttribute(ValidateArgumentsAttribute validator) =>
             _cap.AddValidationAttribute(validator);
         #endregion

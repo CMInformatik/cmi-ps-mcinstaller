@@ -26,7 +26,7 @@ namespace cmi.mc.config.Tests
             // ReSharper disable once ObjectCreationAsStatement
             new SimpleAspectDependency(App.Common, mock.Object, valueToTest);
 
-            mock.Verify(a => a.TestValue(valueToTest, null), Times.Once);
+            mock.Verify(a => a.TestValue(valueToTest, null, Platform.Unspecified), Times.Once);
         }
 
         [Test]
@@ -53,12 +53,12 @@ namespace cmi.mc.config.Tests
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, new object());
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.GetConfigurationProperty(App.Common, "mock")).Returns(null);
+            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns(null);
 
             void D1() => dep.Verify(mock.Object, App.Common, aspect);
 
             Assert.Throws(typeof(AspectDependencyNotFulfilled), D1);
-            mock.Verify(m => m.GetConfigurationProperty(App.Common, "mock"));
+            mock.Verify(m => m.Get(App.Common, "mock", Platform.Unspecified));
         }
 
         [Test]
@@ -67,12 +67,12 @@ namespace cmi.mc.config.Tests
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, "some string");
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.GetConfigurationProperty(App.Common, "mock")).Returns("not some string");
+            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns("not some string");
 
             void D1() => dep.Verify(mock.Object, App.Common, aspect);
 
             Assert.Throws(typeof(AspectDependencyNotFulfilled), D1);
-            mock.Verify(m => m.GetConfigurationProperty(App.Common, "mock"));
+            mock.Verify(m => m.Get(App.Common, "mock", Platform.Unspecified));
         }
 
         [Test]
@@ -81,10 +81,10 @@ namespace cmi.mc.config.Tests
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, null);
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.GetConfigurationProperty(App.Common, "mock")).Returns(null);
+            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns(null);
 
             dep.Verify(mock.Object, App.Common, aspect);
-            mock.Verify(m => m.GetConfigurationProperty(App.Common, "mock"));
+            mock.Verify(m => m.Get(App.Common, "mock", Platform.Unspecified));
         }
 
         [Test]
@@ -93,10 +93,10 @@ namespace cmi.mc.config.Tests
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, "some string");
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.GetConfigurationProperty(App.Common, "mock")).Returns("some string");
+            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns("some string");
 
             dep.Verify(mock.Object, App.Common, aspect);
-            mock.Verify(m => m.GetConfigurationProperty(App.Common, "mock"));
+            mock.Verify(m => m.Get(App.Common, "mock", Platform.Unspecified));
         }
 
         [Test]
@@ -105,10 +105,10 @@ namespace cmi.mc.config.Tests
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, "some string");
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.GetConfigurationProperty(App.Common, "mock")).Returns("some string");
+            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns("some string");
 
             dep.Ensure(mock.Object, App.Common, aspect);
-            mock.Verify(m => m.SetConfigurationProperty(It.IsAny<App>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<bool>()), Times.Never);
+            mock.Verify(m => m.Set(It.IsAny<App>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<bool>(), Platform.Unspecified), Times.Never);
         }
 
         [Test]
@@ -117,10 +117,10 @@ namespace cmi.mc.config.Tests
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, "some string");
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.GetConfigurationProperty(App.Common, "mock")).Returns("not some string");
+            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns("not some string");
 
             dep.Ensure(mock.Object, App.Common, aspect);
-            mock.Verify(m => m.SetConfigurationProperty(App.Common, "mock", It.IsAny<object>(), true), Times.Once);
+            mock.Verify(m => m.Set(App.Common, "mock", It.IsAny<object>(), true, Platform.Unspecified), Times.Once);
         }
     }
 }

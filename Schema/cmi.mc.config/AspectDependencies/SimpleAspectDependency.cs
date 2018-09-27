@@ -30,7 +30,7 @@ namespace cmi.mc.config.AspectDependencies
         {
             if (!_requiresSpecificValue)
             {
-                if (!tenant.HasConfigurationProperty(_app, _otherAspect.GetAspectPath()))
+                if (!tenant.Has(_app, _otherAspect.GetAspectPath()))
                 {
                     throw new AspectDependencyNotFulfilled($"The dependency {_otherAspect.GetAspectPath()} is not set");
                 }
@@ -38,7 +38,7 @@ namespace cmi.mc.config.AspectDependencies
             }
 
             if (tenant == null) throw new ArgumentNullException(nameof(tenant));
-            var currentValue = tenant.GetConfigurationProperty(_app, _otherAspect.GetAspectPath());
+            var currentValue = tenant.Get(_app, _otherAspect.GetAspectPath());
 
             if (currentValue == null && _value == null) return;
             if (currentValue == null || !currentValue.Equals(_value))
@@ -56,7 +56,7 @@ namespace cmi.mc.config.AspectDependencies
             catch (AspectDependencyNotFulfilled)
             {
                 var value = _requiresSpecificValue ? _value : _otherAspect.GetDefaultValue(tenant);
-                tenant.SetConfigurationProperty(_app, _otherAspect.GetAspectPath(), value, true);
+                tenant.Set(_app, _otherAspect.GetAspectPath(), value, true);
             }
         }
     }

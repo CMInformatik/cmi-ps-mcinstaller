@@ -21,7 +21,7 @@ namespace cmi.mc.config.Tests
         public void Should_ReplacePlaceholders_When_GetDefaultValue()
         {
             var aspect = GetAspectMock();
-            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>())).Returns("aspect");
+            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>(), Platform.Unspecified)).Returns("aspect");
             aspect.Setup(a => a.Type).Returns(typeof(string));
 
             var decAspect = new DefaultValueDecorator(
@@ -40,7 +40,7 @@ namespace cmi.mc.config.Tests
         public void Should_FailTestValue_When_DefaultValueIsEnforcedAndDifferent()
         {
             var aspect = GetAspectMock();
-            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>())).Returns("a");
+            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>(), Platform.Unspecified)).Returns("a");
             aspect.Setup(a => a.Type).Returns(typeof(string));
 
             var decAspect = new DefaultValueDecorator(aspect.Object,"a",true);
@@ -52,7 +52,7 @@ namespace cmi.mc.config.Tests
         public void Should_PassTestValue_When_DefaultValueIsEnforcedAndSame()
         {
             var aspect = GetAspectMock();
-            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>())).Returns("a");
+            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>(), Platform.Unspecified)).Returns("a");
             aspect.Setup(a => a.Type).Returns(typeof(string));
 
             var decAspect = new DefaultValueDecorator(aspect.Object, "a", true);
@@ -65,7 +65,7 @@ namespace cmi.mc.config.Tests
         public void Should_NotModifyDefaultValue_When_TenantIsNull()
         {
             var aspect = GetAspectMock();
-            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>())).Returns("aspect");
+            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>(), Platform.Unspecified)).Returns("aspect");
             aspect.Setup(a => a.Type).Returns(typeof(string));
 
             var decAspect = new DefaultValueDecorator(

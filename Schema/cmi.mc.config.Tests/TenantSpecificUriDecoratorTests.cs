@@ -25,7 +25,7 @@ namespace cmi.mc.config.Tests
         public void Should_ReplaceBaseUrl_When_GetDefaultValue()
         {
             var aspect = GetAspectMock();
-            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>())).Returns(new Uri("https://m.ch/myapp"));
+            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>(), Platform.Unspecified)).Returns(new Uri("https://m.ch/myapp"));
             aspect.Setup(a => a.Type).Returns(typeof(Uri));
 
             var decAspect = new TenantSpecificUriDecorator(aspect.Object);
@@ -42,7 +42,7 @@ namespace cmi.mc.config.Tests
         public void Should_ReplaceTenantPlaceHolder_When_GetDefaultValue()
         {
             var aspect = GetAspectMock();
-            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>())).Returns(new Uri("https://m.ch/myapp/{tenant}"));
+            aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>(), Platform.Unspecified)).Returns(new Uri("https://m.ch/myapp/{tenant}"));
             aspect.Setup(a => a.Type).Returns(typeof(Uri));
 
             var decAspect = new TenantSpecificUriDecorator(aspect.Object, "{tenant}");

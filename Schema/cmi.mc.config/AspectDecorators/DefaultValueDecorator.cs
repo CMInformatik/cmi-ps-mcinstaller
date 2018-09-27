@@ -35,25 +35,25 @@ namespace cmi.mc.config.AspectDecorators
 
         public static string ServiceBaseUrlPlaceholder => "{servicebaseurl}";
 
-        public object GetDefaultValue(ITenant tenant = null)
+        public object GetDefaultValue(ITenant tenant = null, Platform platform = Platform.Unspecified)
         {          
             if (tenant == null)
             {
-                return _cap.GetDefaultValue();
+                return _cap.GetDefaultValue(null, platform);
             }
             Debug.Assert(tenant.ServiceBaseUrl != null);
             return _pattern
                 .Replace(TenantNamePlaceholder, tenant.Name)
                 .Replace(ServiceBaseUrlPlaceholder, tenant.ServiceBaseUrl.ToString())
-                .Replace(OriginalDefaultPlaceholder, _cap.GetDefaultValue() as string);
+                .Replace(OriginalDefaultPlaceholder, _cap.GetDefaultValue(tenant, platform) as string);
         }
 
-        public void TestValue(object value, ITenant tenant = null)
+        public void TestValue(object value, ITenant tenant = null, Platform platform = Platform.Unspecified)
         {
-            _cap.TestValue(value);
+            _cap.TestValue(value, tenant, platform);
             if (!_enforceDefaultValue) return;
 
-            var defaultValue = GetDefaultValue(tenant);
+            var defaultValue = GetDefaultValue(tenant, platform);
             if (defaultValue == null && value == null) return;
             if (value == null || !value.Equals(defaultValue))
             {

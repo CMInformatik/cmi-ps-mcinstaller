@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using cmi.mc.config.AspectDependencies;
+using cmi.mc.config.ModelContract;
 
-namespace cmi.mc.config.SchemaComponents
+namespace cmi.mc.config.ModelComponents
 {
     public abstract class Aspect : IAspect
     {
@@ -59,7 +59,7 @@ namespace cmi.mc.config.SchemaComponents
 
         public static void ThrowIfInvalidAspectPath(string aspectPath)
         {
-            if (String.IsNullOrWhiteSpace(aspectPath)) throw new ArgumentNullException(nameof(aspectPath));
+            if (string.IsNullOrWhiteSpace(aspectPath)) throw new ArgumentNullException(nameof(aspectPath));
             if (!IsValidAspectPath(aspectPath)) throw new ArgumentException("Not a valid aspect path", nameof(aspectPath));
         }
 

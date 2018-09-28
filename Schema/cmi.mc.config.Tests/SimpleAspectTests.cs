@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using cmi.mc.config.SchemaComponents;
+using cmi.mc.config.ModelComponents;
+using cmi.mc.config.ModelContract;
 using NUnit.Framework;
 
 namespace cmi.mc.config.Tests

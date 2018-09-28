@@ -1,6 +1,4 @@
-﻿using cmi.mc.config.SchemaComponents;
-
-namespace cmi.mc.config.AspectDependencies
+﻿namespace cmi.mc.config.ModelContract
 {
     public interface IAspectDependency
     {

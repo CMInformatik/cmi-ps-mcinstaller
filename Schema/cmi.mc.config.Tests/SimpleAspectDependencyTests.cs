@@ -1,6 +1,6 @@
 ﻿using System;
-using cmi.mc.config.AspectDependencies;
-using cmi.mc.config.SchemaComponents;
+using cmi.mc.config.ModelComponents.Dependencies;
+using cmi.mc.config.ModelContract;
 using Moq;
 using NUnit.Framework;
 
@@ -57,7 +57,7 @@ namespace cmi.mc.config.Tests
 
             void D1() => dep.Verify(mock.Object, App.Common, aspect);
 
-            Assert.Throws(typeof(AspectDependencyNotFulfilled), D1);
+            Assert.Throws(typeof(AspectDependencyNotFulfilledException), D1);
             mock.Verify(m => m.Get(App.Common, "mock", Platform.Unspecified));
         }
 
@@ -71,7 +71,7 @@ namespace cmi.mc.config.Tests
 
             void D1() => dep.Verify(mock.Object, App.Common, aspect);
 
-            Assert.Throws(typeof(AspectDependencyNotFulfilled), D1);
+            Assert.Throws(typeof(AspectDependencyNotFulfilledException), D1);
             mock.Verify(m => m.Get(App.Common, "mock", Platform.Unspecified));
         }
 

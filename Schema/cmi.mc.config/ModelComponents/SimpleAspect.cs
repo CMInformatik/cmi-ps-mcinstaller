@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using System.Reflection;
+using cmi.mc.config.ModelContract;
+using PlatformNotSupportedException = cmi.mc.config.ModelContract.PlatformNotSupportedException;
 
-namespace cmi.mc.config.SchemaComponents
+namespace cmi.mc.config.ModelComponents
 {
     public class SimpleAspect : Aspect, ISimpleAspect
     {
         private readonly IDictionary<Platform, object> _defaultValue = new Dictionary<Platform, object>();
         private readonly List<ValidateArgumentsAttribute> _validationAttributes = new List<ValidateArgumentsAttribute>();
         private bool? _isRequired = null;
+        private bool? _isPlatformSpecific = null;
 
         public SimpleAspect(string name, Type type, object defaultValue, AxSupport axSupport = AxSupport.R16_1) : base(name)
         {
@@ -25,6 +28,22 @@ namespace cmi.mc.config.SchemaComponents
             _defaultValue.Add(Platform.Unspecified, defaultValue);
             Type = type;
             AxSupport = axSupport;
+        }
+
+        public bool IsPlatformSpecific
+        {
+            get => _isPlatformSpecific ?? false;
+            set
+            {
+                if (value)
+                {
+                    _isPlatformSpecific = true;
+                }
+                else
+                {
+                    throw new InvalidOperationException("You can not set this property to false");
+                }
+            }
         }
 
         public bool IsRequired
@@ -44,7 +63,6 @@ namespace cmi.mc.config.SchemaComponents
         }
         public Type Type { get; }
         public AxSupport AxSupport { get; }
-        public IReadOnlyList<ValidateArgumentsAttribute> ValidationAttributes => _validationAttributes;
 
         public void AddValidationAttribute(ValidateArgumentsAttribute validator)
         {
@@ -59,6 +77,7 @@ namespace cmi.mc.config.SchemaComponents
                 throw new InvalidOperationException($"The default value for {platform} is already set.");
             }          
             _defaultValue.Add(platform, value);
+            IsPlatformSpecific = true;
         }
 
         public object GetDefaultValue(ITenant tenant = null, Platform platform = Platform.Unspecified)
@@ -69,6 +88,11 @@ namespace cmi.mc.config.SchemaComponents
         /// <inheritdoc />
         public void TestValue(object value, ITenant tenant = null, Platform platform = Platform.Unspecified)
         {
+            if (!IsPlatformSpecific && platform != Platform.Unspecified)
+            {
+                throw new PlatformNotSupportedException($"{GetAspectPath()} does not support platform specific values", platform);
+            }
+
             if (value == null && !IsRequired) return;
             if (value == null) throw new ArgumentNullException(nameof(value), "A value for this aspect is required");
             if (!Type.IsInstanceOfType(value)) throw  new ArgumentException($"{value.GetType().FullName} is not convertable to type {Type.FullName}");
@@ -85,5 +109,10 @@ namespace cmi.mc.config.SchemaComponents
         {
             yield return this;
         }
+    }
+
+    public class SimpleAspect<T> : SimpleAspect
+    {
+        public SimpleAspect(string name, T defaultValue, AxSupport axSupport = AxSupport.R16_1) : base(name, typeof(T), defaultValue, axSupport){ }
     }
 }

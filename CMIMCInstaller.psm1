@@ -1,16 +1,16 @@
 ﻿#Requires -PSEdition Desktop
 
 # Konfigurationsmodell Definition
-Add-Type -Path $PSScriptRoot\Schema\cmi.ps.mcschema.dll -ErrorAction Stop
+Add-Type -Path $PSScriptRoot\Schema\cmi.mc.config.dll -ErrorAction Stop
 
-# define accelerators to shortcut: New-Object cmi.ps.mcschema.ComplexAspect --> New-Object ComplexAspect 
+# define accelerators to shortcut: New-Object cmi.mc.config.ComplexAspect --> New-Object ComplexAspect 
 $accelerators = [PSObject].Assembly.GetType('System.Management.Automation.TypeAccelerators')
-$accelerators::Add('ComplexAspect','cmi.ps.mcschema.ComplexAspect')
-$accelerators::Add('SimpleAspect','cmi.ps.mcschema.SimpleAspect')
-$accelerators::Add('AppSection','cmi.ps.mcschema.AppSection')
-$accelerators::Add('App','cmi.ps.mcschema.App')
-$accelerators::Add('ConfigControlAttribute','cmi.ps.mcschema.ConfigControlAttribute')
-$accelerators::Add('AxSupport','cmi.ps.mcschema.AxSupport')
+$accelerators::Add('ComplexAspect','cmi.mc.config.ComplexAspect')
+$accelerators::Add('SimpleAspect','cmi.mc.config.SimpleAspect')
+$accelerators::Add('AppSection','cmi.mc.config.AppSection')
+$accelerators::Add('App','cmi.mc.config.App')
+$accelerators::Add('ConfigControlAttribute','cmi.mc.config.ConfigControlAttribute')
+$accelerators::Add('AxSupport','cmi.mc.config.AxSupport')
 
 Get-ChildItem -Path $PSScriptRoot\Schema\*.ps1 | ForEach-Object {
     if (-Not $_.FullName.EndsWith("Tests.ps1")) {
@@ -19,7 +19,7 @@ Get-ChildItem -Path $PSScriptRoot\Schema\*.ps1 | ForEach-Object {
 }
 
 # Konfigurationsmodell laden
-Set-Variable -Name ConfigurationModel -Value (New-Object 'cmi.ps.mcschema.ConfigurationModel') -Option ReadOnly -Force
+Set-Variable -Name ConfigurationModel -Value (New-Object 'cmi.mc.config.ConfigurationModel') -Option ReadOnly -Force
 Get-ChildItem -Path $PSScriptRoot\Model\*.ps1 | ForEach-Object {
     if (-Not $_.FullName.EndsWith("Tests.ps1")) {
         . $_.FullName

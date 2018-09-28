@@ -4,16 +4,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using cmi.mc.config.ModelContract;
 using Newtonsoft.Json.Linq;
 
-namespace cmi.mc.config.SchemaComponents
+namespace cmi.mc.config.ModelComponents
 {
     public class Tenant : ITenant
     {
         private JProperty _configuration;
         private readonly ConfigurationModel _model;
         private static readonly IEnumerable<string> CcaNames = Enum.GetValues(typeof(ConfigControlAttribute)).Cast<ConfigControlAttribute>().Select(e => e.ToConfigurationName());
-        private static readonly Platform[] Platforms = (Platform[])Enum.GetValues(typeof(Platform));
+        private static readonly IList<Platform> Platforms = (Platform[])Enum.GetValues(typeof(Platform));
 
         public string Name => _configuration.Name;
         public Uri ServiceBaseUrl { get; private set; }
@@ -133,15 +134,21 @@ namespace cmi.mc.config.SchemaComponents
             if (!Has(app)) return;
             var xpath = BuildJPath(_configuration, app, model, platform);
             var token = _configuration.Root.SelectTokens(xpath).SingleOrDefault();
-            token?.Parent?.Remove();
+            RevertChangesOnFailure(() =>
+            {
+                token?.Parent?.Remove();
+            });
         }
 
         public void Remove(App app, string aspectPath)
         {
-            foreach (var pl in Platforms)
+            RevertChangesOnFailure(() =>
             {
-                Remove(app, aspectPath, pl);
-            }
+                foreach (var pl in Platforms)
+                {
+                    Remove(app, aspectPath, pl);
+                }
+            });
         }
 
         public object Get(App app, string aspectPath, Platform platform = Platform.Unspecified)
@@ -201,13 +208,6 @@ namespace cmi.mc.config.SchemaComponents
             }
         }
 
-        /// <summary>
-        /// Sets a configuration property to the specified value.
-        /// </summary>
-        /// <param name="app">The app of the property.</param>
-        /// <param name="aspectPath">Path of the property.</param>
-        /// <param name="value">Value of the property</param>
-        /// <param name="ensureDependencies">Set dependencies the required values.</param>
         public void Set(App app, string aspectPath, object value, bool ensureDependencies = false, Platform platform = Platform.Unspecified)
         {
             var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
@@ -347,11 +347,11 @@ namespace cmi.mc.config.SchemaComponents
             }
         }
 
-        private static string BuildJPath(JProperty tenantConfiguration, App app, IAspect aspect, Platform platform)
+        private static string BuildJPath(JToken tenantConfiguration, App app, IAspect aspect, Platform platform)
         {
             Debug.Assert(tenantConfiguration != null);
             Debug.Assert(aspect != null);
-            StringBuilder jpath = new StringBuilder($"$.{tenantConfiguration.Path}");
+            var jpath = new StringBuilder($"$.{tenantConfiguration.Path}");
             jpath.Append($".{app.ToConfigurationName()}");
 
             if (aspect is SimpleAspect simple)

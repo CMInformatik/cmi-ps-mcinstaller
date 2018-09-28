@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace cmi.mc.config.SchemaComponents
+namespace cmi.mc.config.ModelContract
 {
     [System.AttributeUsage(System.AttributeTargets.Field)]
     internal class InConfigurationName : Attribute

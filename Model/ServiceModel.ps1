@@ -4,8 +4,8 @@ $common_service.AddAspect((New-Object SimpleAspect ('allowDokumenteOpenExternal'
 $common_service.AddAspect((New-Object SimpleAspect ('allowDokumenteAddNewVersion', [bool], $false)))
 $common_service.AddAspect((New-Object SimpleAspect ('allowDokumenteAddNew', [bool], $false)))
 $common_service.AddAspect((New-Object SimpleAspect ('supportsDokumenteDelete', [bool], $false)))
-$common_service.AddAspect((New-Object SimpleAspect ('supportsPrivate', [bool], $false, [cmi.ps.mcschema.AxSupport]::R17)))
-$common_service.AddAspect((New-Object SimpleAspect ('supportsSaveSettings', [bool], $false, [cmi.ps.mcschema.AxSupport]::R18)))
+$common_service.AddAspect((New-Object SimpleAspect ('supportsPrivate', [bool], $false, [cmi.mc.config.AxSupport]::R17)))
+$common_service.AddAspect((New-Object SimpleAspect ('supportsSaveSettings', [bool], $false, [cmi.mc.config.AxSupport]::R18)))
 
 $ConfigurationModel[[App]::Common].AddAspect($common_service)
 

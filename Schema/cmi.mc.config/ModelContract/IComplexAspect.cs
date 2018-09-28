@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace cmi.mc.config.SchemaComponents
+namespace cmi.mc.config.ModelContract
 {
     public interface IComplexAspect : IAspect
     {

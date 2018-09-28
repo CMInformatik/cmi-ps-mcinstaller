@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Management.Automation;
 
-namespace cmi.mc.config.SchemaComponents
+namespace cmi.mc.config.ModelContract
 {
     public interface ISimpleAspect : IAspect
     {
         bool IsRequired { get; set; }
         Type Type { get; }
         AxSupport AxSupport { get; }
-        IReadOnlyList<ValidateArgumentsAttribute> ValidationAttributes { get; }
 
         /// <summary>
         /// Tests if the given value is valid for this aspect.
@@ -28,8 +27,6 @@ namespace cmi.mc.config.SchemaComponents
         /// <param name="platform">The default for a specific platform.</param>
         /// <returns>The default value.</returns>
         object GetDefaultValue(ITenant tenant = null, Platform platform = Platform.Unspecified);
-
-        void AddValidationAttribute(ValidateArgumentsAttribute validator);
 
     }
 }

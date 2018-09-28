@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using cmi.mc.config.ModelContract;
 
-namespace cmi.mc.config.SchemaComponents
+namespace cmi.mc.config.ModelComponents
 {
     public class AppSection : ComplexAspect
     {

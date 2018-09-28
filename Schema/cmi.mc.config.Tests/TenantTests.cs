@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
-using cmi.mc.config.SchemaComponents;
+using cmi.mc.config.ModelComponents;
+using cmi.mc.config.ModelContract;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
@@ -33,14 +34,14 @@ namespace cmi.mc.config.Tests
         [OneTimeSetUp]
         public static void ClassInit()
         {
-            var simple1 = new SimpleAspect("simple1", typeof(string), "simple1");
-            var simple2 = new SimpleAspect("simple2", typeof(bool), true);
+            var simple1 = new SimpleAspect("simple1", typeof(string), "simple1") {IsPlatformSpecific = true};
+            var simple2 = new SimpleAspect("simple2", typeof(bool), true) { IsPlatformSpecific = true };
             var complex1 = new ComplexAspect("complex1");
             simple1.AddValidationAttribute(Validator);
             complex1.AddAspect(simple1);
             complex1.AddAspect(simple2);
 
-            var simple3 = new SimpleAspect("simple3", typeof(string), "simple3");
+            var simple3 = new SimpleAspect("simple3", typeof(string), "simple3") { IsPlatformSpecific = true };
             var complex2 = new ComplexAspect("complex2", ConfigControlAttribute.Extend);
             complex2.AddAspect(simple3);
 
@@ -301,6 +302,72 @@ namespace cmi.mc.config.Tests
                     Assert.That(r, pl == pl2 ? Is.Null : Is.Not.Null);
                 }
             }
+        }
+
+        [Test]
+        public void Should_NotRemovePropertyPlatformSpecific_When_PlatformIsNotSpecificed()
+        {
+            const string json = @"
+            {
+	            ""tenant1"": {
+		            ""common"": {},
+		            ""dossierbrowser"": {
+			            ""complex2"" : {
+				            ""app"" : {
+					            ""simple3"" : ""p_app""
+				            },
+				            ""web"" : {
+					            ""simple3"" : ""p_web""
+				            },
+				            ""simple3"": ""p_unspec""
+			            }
+		            }
+	            }
+            }";
+
+            var c = Configuration.ReadFromString(json, TestModel);
+            c["tenant1"].Remove(App.Dossierbrowser, "complex2.simple3", Platform.Unspecified);
+
+            var r1 = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.Unspecified);
+            var r2 = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.App);
+            var r3 = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.Web);
+
+            Assert.That(r1, Is.Null);
+            Assert.That(r2, Is.Not.Null);
+            Assert.That(r3, Is.Not.Null);
+        }
+
+        [Test]
+        public void Should_RemoveAllPropertyValues_When_NoPlatformIsGiven()
+        {
+            const string json = @"
+            {
+	            ""tenant1"": {
+		            ""common"": {},
+		            ""dossierbrowser"": {
+			            ""complex2"" : {
+				            ""app"" : {
+					            ""simple3"" : ""p_app""
+				            },
+				            ""web"" : {
+					            ""simple3"" : ""p_web""
+				            },
+				            ""simple3"": ""p_unspec""
+			            }
+		            }
+	            }
+            }";
+
+            var c = Configuration.ReadFromString(json, TestModel);
+            c["tenant1"].Remove(App.Dossierbrowser, "complex2.simple3");
+
+            var r1 = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.Unspecified);
+            var r2 = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.App);
+            var r3 = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.Web);
+
+            Assert.That(r1, Is.Null);
+            Assert.That(r2, Is.Null);
+            Assert.That(r3, Is.Null);
         }
 
         [Test]

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Management.Automation;
-using cmi.mc.config.SchemaComponents;
+using cmi.mc.config.ModelComponents;
+using cmi.mc.config.ModelContract;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using cmi.mc.config.AspectDecorators;
-using cmi.mc.config.SchemaComponents;
+using cmi.mc.config.ModelComponents.Decorators;
+using cmi.mc.config.ModelContract;
 using Moq;
 using NUnit.Framework;
 

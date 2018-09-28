@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Management.Automation;
-using System.Text;
-using System.Threading.Tasks;
-using cmi.mc.config.AspectDependencies;
-using cmi.mc.config.SchemaComponents;
+using cmi.mc.config.ModelContract;
 
-namespace cmi.mc.config.AspectDecorators
+namespace cmi.mc.config.ModelComponents.Decorators
 {
     public class DefaultValueDecorator : ISimpleAspect
     {

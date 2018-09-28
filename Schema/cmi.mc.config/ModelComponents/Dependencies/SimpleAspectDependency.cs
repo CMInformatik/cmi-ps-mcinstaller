@@ -1,7 +1,7 @@
 ﻿using System;
-using cmi.mc.config.SchemaComponents;
+using cmi.mc.config.ModelContract;
 
-namespace cmi.mc.config.AspectDependencies
+namespace cmi.mc.config.ModelComponents.Dependencies
 {
     public class SimpleAspectDependency : IAspectDependency
     {
@@ -32,7 +32,7 @@ namespace cmi.mc.config.AspectDependencies
             {
                 if (!tenant.Has(_app, _otherAspect.GetAspectPath()))
                 {
-                    throw new AspectDependencyNotFulfilled($"The dependency {_otherAspect.GetAspectPath()} is not set");
+                    throw new AspectDependencyNotFulfilledException($"The dependency {_otherAspect.GetAspectPath()} is not set");
                 }
                 return;
             }
@@ -43,7 +43,7 @@ namespace cmi.mc.config.AspectDependencies
             if (currentValue == null && _value == null) return;
             if (currentValue == null || !currentValue.Equals(_value))
             {
-                throw new AspectDependencyNotFulfilled($"The dependency {_otherAspect.GetAspectPath()} does not have the required value of {_value}.");
+                throw new AspectDependencyNotFulfilledException($"The dependency {_otherAspect.GetAspectPath()} does not have the required value of {_value}.");
             }
         }
 
@@ -53,7 +53,7 @@ namespace cmi.mc.config.AspectDependencies
             {
                 Verify(tenant, app, aspect);
             }
-            catch (AspectDependencyNotFulfilled)
+            catch (AspectDependencyNotFulfilledException)
             {
                 var value = _requiresSpecificValue ? _value : _otherAspect.GetDefaultValue(tenant);
                 tenant.Set(_app, _otherAspect.GetAspectPath(), value, true);

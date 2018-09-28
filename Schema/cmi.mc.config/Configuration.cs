@@ -5,7 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using cmi.mc.config.SchemaComponents;
+using cmi.mc.config.ModelComponents;
+using cmi.mc.config.ModelContract;
 using Newtonsoft.Json.Linq;
 
 namespace cmi.mc.config
@@ -34,6 +35,12 @@ namespace cmi.mc.config
             if(model == null) throw new ArgumentNullException(nameof(model));
             if (!System.IO.File.Exists(path)) throw new FileNotFoundException($"Could not find {path}", path);
             return new Configuration(JObject.Parse(System.IO.File.ReadAllText(path)), model);
+        }
+
+        public static Configuration New(ConfigurationModel model)
+        {
+            if (model == null) throw new ArgumentNullException(nameof(model));
+            return new Configuration(JObject.Parse("{}"), model);
         }
 
         public static Configuration ReadFromString(string jsonString, ConfigurationModel model)

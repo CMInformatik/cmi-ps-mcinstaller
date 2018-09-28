@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using cmi.mc.config.SchemaComponents;
+﻿using System.Diagnostics;
+using cmi.mc.config.ModelContract;
 
-namespace cmi.mc.config.AspectDependencies
+namespace cmi.mc.config.ModelComponents.Dependencies
 {
     public class AppDependency : IAspectDependency
     {
@@ -23,7 +18,7 @@ namespace cmi.mc.config.AspectDependencies
             Debug.Assert(aspect != null);
             if (!tenant.Has(_requiredApp))
             {
-                throw new AspectDependencyNotFulfilled($"{aspect.GetAspectPath()}:{_requiredApp} requires to be enabled when this property is set.");
+                throw new AspectDependencyNotFulfilledException($"{aspect.GetAspectPath()}:{_requiredApp} requires to be enabled when this property is set.");
             }
         }
 

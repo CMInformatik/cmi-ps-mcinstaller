@@ -2,11 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using cmi.mc.config.AspectDecorators;
-using cmi.mc.config.AspectDependencies;
-using cmi.mc.config.SchemaComponents;
+using cmi.mc.config.ModelComponents;
+using cmi.mc.config.ModelComponents.Decorators;
+using cmi.mc.config.ModelComponents.Dependencies;
+using cmi.mc.config.ModelContract;
 
 namespace cmi.mc.config
 {

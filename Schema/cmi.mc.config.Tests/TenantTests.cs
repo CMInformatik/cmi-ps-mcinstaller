@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Management.Automation;
 using cmi.mc.config.ModelComponents;
 using cmi.mc.config.ModelContract;
+using FluentValidation;
+using FluentValidation.Results;
+using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
@@ -13,35 +15,23 @@ namespace cmi.mc.config.Tests
     public class TenantTests
     {
         private static readonly ConfigurationModel TestModel = new ConfigurationModel();
-        private static readonly ValidatorMock Validator = new ValidatorMock();
-
-        private class ValidatorMock : ValidateArgumentsAttribute
-        {
-            public object Arguments { get; set; }
-
-            protected override void Validate(object arguments, EngineIntrinsics engineIntrinsics)
-            {
-                Arguments = arguments;
-            }
-        }
-
-        [SetUp]
-        public void TestInit()
-        {
-            Validator.Arguments = null;
-        }
+        private static Mock<IValidator<string>> _validator;
 
         [OneTimeSetUp]
         public static void ClassInit()
         {
-            var simple1 = new SimpleAspect("simple1", typeof(string), "simple1") {IsPlatformSpecific = true};
-            var simple2 = new SimpleAspect("simple2", typeof(bool), true) { IsPlatformSpecific = true };
+            _validator = new Mock<IValidator<string>>();
+            var sum = new Mock<ValidationResult>();
+            sum.Setup(s => s.IsValid).Returns(true);
+            _validator.Setup(v => v.Validate(It.IsAny<object>())).Returns(sum.Object);
+
+            var simple1 = new SimpleAspect<string>("simple1", "simple1", AxSupport.R16_1, _validator.Object) {IsPlatformSpecific = true};
+            var simple2 = new SimpleAspect<bool>("simple2", true) { IsPlatformSpecific = true };
             var complex1 = new ComplexAspect("complex1");
-            simple1.AddValidationAttribute(Validator);
             complex1.AddAspect(simple1);
             complex1.AddAspect(simple2);
 
-            var simple3 = new SimpleAspect("simple3", typeof(string), "simple3") { IsPlatformSpecific = true };
+            var simple3 = new SimpleAspect<string>("simple3", "simple3") { IsPlatformSpecific = true };
             var complex2 = new ComplexAspect("complex2", ConfigControlAttribute.Extend);
             complex2.AddAspect(simple3);
 
@@ -87,9 +77,12 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_ExecuteValidators_When_SetConfigProperty()
         {
+            int calls = 0;
+            _validator.Setup(v => v.Validate(It.IsAny<object>())).Callback(()=> calls++);
+
             var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{}}}", TestModel);
             c["tenant1"].Set(App.Common, "complex1.simple1", "some string");
-            Assert.AreEqual(Validator.Arguments, "some string");
+            Assert.That(calls, Is.EqualTo(1));
         }
 
         [Test]

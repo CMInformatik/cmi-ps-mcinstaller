@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Management.Automation;
 using cmi.mc.config.ModelContract;
 
 namespace cmi.mc.config.ModelComponents.Decorators
@@ -77,9 +76,6 @@ namespace cmi.mc.config.ModelComponents.Decorators
         }
         public Type Type => _cap.Type;
         public AxSupport AxSupport => _cap.AxSupport;
-        public IReadOnlyList<ValidateArgumentsAttribute> ValidationAttributes => _cap.ValidationAttributes;
-        public void AddValidationAttribute(ValidateArgumentsAttribute validator) =>
-            _cap.AddValidationAttribute(validator);
 #endregion
     }
 }

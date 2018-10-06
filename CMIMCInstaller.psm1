@@ -5,12 +5,11 @@ Add-Type -Path $PSScriptRoot\Schema\cmi.mc.config.dll -ErrorAction Stop
 
 # define accelerators to shortcut: New-Object cmi.mc.config.ComplexAspect --> New-Object ComplexAspect 
 $accelerators = [PSObject].Assembly.GetType('System.Management.Automation.TypeAccelerators')
-$accelerators::Add('ComplexAspect','cmi.mc.config.ComplexAspect')
-$accelerators::Add('SimpleAspect','cmi.mc.config.SimpleAspect')
-$accelerators::Add('AppSection','cmi.mc.config.AppSection')
-$accelerators::Add('App','cmi.mc.config.App')
-$accelerators::Add('ConfigControlAttribute','cmi.mc.config.ConfigControlAttribute')
-$accelerators::Add('AxSupport','cmi.mc.config.AxSupport')
+$accelerators::Add('ComplexAspect','cmi.mc.config.ModelComponents.ComplexAspect')
+$accelerators::Add('StringAspect','cmi.mc.config.ModelComponents.SimpleAspect[System.string]')
+$accelerators::Add('App','cmi.mc.config.ModelContract.App')
+$accelerators::Add('ConfigControlAttribute','cmi.mc.config.ModelContract.ConfigControlAttribute')
+$accelerators::Add('AxSupport','cmi.mc.config.ModelContract.AxSupport')
 
 Get-ChildItem -Path $PSScriptRoot\Schema\*.ps1 | ForEach-Object {
     if (-Not $_.FullName.EndsWith("Tests.ps1")) {

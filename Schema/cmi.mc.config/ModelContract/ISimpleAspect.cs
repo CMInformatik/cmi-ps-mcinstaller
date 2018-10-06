@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Management.Automation;
 
 namespace cmi.mc.config.ModelContract
 {

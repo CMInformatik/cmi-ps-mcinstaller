@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Linq;
-using System.Management.Automation;
 using cmi.mc.config.ModelComponents;
 using cmi.mc.config.ModelContract;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
 
 namespace cmi.mc.config.Tests
 {
@@ -12,12 +10,12 @@ namespace cmi.mc.config.Tests
     public class AspectTests
     {
         private static readonly ConfigurationModel TestModel = new ConfigurationModel();
-        private static SimpleAspect Leaf = null;
+        private static ISimpleAspect Leaf = null;
 
         [OneTimeSetUp]
         public static void ClassInit()
         {
-            var simple1 = new SimpleAspect("simple1", typeof(bool), true);
+            var simple1 = new SimpleAspect<bool>("simple1", true);
             var complex1 = new ComplexAspect("complex1");
             var complex2 = new ComplexAspect("complex2");
             var complex3 = new ComplexAspect("complex3");

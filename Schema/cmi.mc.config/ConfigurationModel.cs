@@ -2,10 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using cmi.mc.config.ModelComponents;
 using cmi.mc.config.ModelComponents.Decorators;
 using cmi.mc.config.ModelComponents.Dependencies;
 using cmi.mc.config.ModelContract;
+using FluentValidation;
 
 namespace cmi.mc.config
 {
@@ -14,33 +16,36 @@ namespace cmi.mc.config
         private readonly IDictionary<App, AppSection> _internal = new Dictionary<App, AppSection>();
         public Uri DefaultServiceUrl { get; private set; } = new Uri("https://mobile.cmiaxioma.ch");
 
+        /// provide prameterless constructor
+        public ConfigurationModel() : this(null){}
+
         public ConfigurationModel(Uri defaultServiceUrl = null)
         {
             if (defaultServiceUrl != null)
             {
                 DefaultServiceUrl = new Uri(defaultServiceUrl.Scheme + "://" + defaultServiceUrl.Authority);
             }
+
             foreach (var appValue in System.Enum.GetValues(typeof(App)))
             {
-                _internal.Add((App)appValue, new AppSection((App)appValue));
+                _internal.Add((App) appValue, new AppSection((App) appValue));
             }
-            // minimal model
 
-            // api
+            // minimal model
             var api = new ComplexAspect("api");
             api.AddAspect(
                 new TenantSpecificUriDecorator(
-                    new SimpleAspect("server", typeof(Uri), new Uri(DefaultServiceUrl, "mobileclients")) { IsRequired = true }
-            ));
+                    new SimpleAspect<Uri>("server", new Uri(DefaultServiceUrl, "mobileclients")) {IsRequired = true}
+                ));
             api.AddAspect(
                 new DefaultValueDecorator(
-                    new SimpleAspect("public", typeof(string), null) { IsRequired = true },
+                    new SimpleAspect<string>("public", null) {IsRequired = true},
                     $"/proxy/{DefaultValueDecorator.TenantNamePlaceholder}pub",
                     true
                 ));
             api.AddAspect(
                 new DefaultValueDecorator(
-                    new SimpleAspect("private", typeof(string), null) { IsRequired = true },
+                    new SimpleAspect<string>("private", null) {IsRequired = true},
                     $"/proxy/{DefaultValueDecorator.TenantNamePlaceholder}pri",
                     true
                 ));
@@ -56,40 +61,55 @@ namespace cmi.mc.config
             dbDir.AddDependency(new AppDependency(App.Dossierbrowser));
             dbDir.AddAspect(
                 new TenantSpecificUriDecorator(
-                    new SimpleAspect("web", typeof(Uri),
-                        new Uri(DefaultServiceUrl, $"{App.Dossierbrowser.ToConfigurationName()}/{{tenantname}}"))
+                    NotNullAspect("web", new Uri(DefaultServiceUrl, $"{App.Dossierbrowser.ToConfigurationName()}/tenantname"))
                 ));
             dbDir.AddAspect(
-                new SimpleAspect("app", typeof(string), "cmidossierbrowser://"),
-                new SimpleAspect("dossierDetail", typeof(string), "/Abstr/{GUID}"));
+                NotNullAspect("app", "cmidossierbrowser://"),
+                NotNullAspect("dossierDetail", "/Abstr/{GUID}"));
 
             // sitzungsvorbereitung
             var svDir = new ComplexAspect(App.Sitzungsvorbereitung.ToConfigurationName());
             svDir.AddDependency(new AppDependency(App.Sitzungsvorbereitung));
             svDir.AddAspect(
                 new TenantSpecificUriDecorator(
-                    new SimpleAspect("web", typeof(Uri),
-                        new Uri(DefaultServiceUrl, $"{App.Sitzungsvorbereitung.ToConfigurationName()}/{{tenantname}}"))
+                    NotNullAspect("web", new Uri(DefaultServiceUrl, $"{App.Sitzungsvorbereitung.ToConfigurationName()}/tenantname"))
                 ));
             svDir.AddAspect(
-                new SimpleAspect("app", typeof(string), "cmisitzungsvorbereitung://"),
-                new SimpleAspect("sitzungDetail", typeof(string), "/{Gremium}/{Jahr}/{GUID}"),
-                new SimpleAspect("traktandumDetail", typeof(string), "/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}"));
+                NotNullAspect("app", "cmisitzungsvorbereitung://"),
+                NotNullAspect("sitzungDetail", "/{Gremium}/{Jahr}/{GUID}"),
+                NotNullAspect("traktandumDetail", "/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}"));
 
             // zusammenarbeit dritte
             var zdDir = new ComplexAspect(App.Zusammenarbeitdritte.ToConfigurationName());
             zdDir.AddDependency(new AppDependency(App.Zusammenarbeitdritte));
             zdDir.AddAspect(
                 new TenantSpecificUriDecorator(
-                    new SimpleAspect("web", typeof(Uri),
-                        new Uri(DefaultServiceUrl, $"{App.Zusammenarbeitdritte.ToConfigurationName()}/{{tenantname}}"))
+                    NotNullAspect("web", new Uri(DefaultServiceUrl, $"{App.Zusammenarbeitdritte.ToConfigurationName()}/tenantname"))
                 ));
             zdDir.AddAspect(
-                new SimpleAspect("app", typeof(string), "cmisitzungsvorbereitung://"),
-                new SimpleAspect("aktivitaetDetail", typeof(string), "/Aktivitaet/{GUID}")
+                NotNullAspect("app", "cmisitzungsvorbereitung://"),
+                NotNullAspect("aktivitaetDetail", "/Aktivitaet/{GUID}")
             );
 
             _internal[App.Common].AddAspect(new ComplexAspect("appDirectory").AddAspect(dbDir, svDir, zdDir));
+        }
+
+        class Validator<T> : AbstractValidator<T>
+        {
+        }
+
+        private static ISimpleAspect NotNullAspect(string name, string value)
+        {
+            var val = new Validator<string>();
+            val.RuleFor(s => s).NotEmpty();
+            return new SimpleAspect<string>(name, value, AxSupport.R16_1, val);
+        }
+
+        private static ISimpleAspect NotNullAspect(string name, Uri value)
+        {
+            var val = new Validator<Uri>();
+            val.RuleFor(u => u.AbsolutePath).NotEmpty();
+            return new SimpleAspect<Uri>(name, value, AxSupport.R16_1, val);
         }
 
         public T GetAspect<T>(App app, string aspectPath) where T : IAspect

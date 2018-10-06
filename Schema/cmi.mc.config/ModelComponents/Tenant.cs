@@ -354,7 +354,7 @@ namespace cmi.mc.config.ModelComponents
             var jpath = new StringBuilder($"$.{tenantConfiguration.Path}");
             jpath.Append($".{app.ToConfigurationName()}");
 
-            if (aspect is SimpleAspect simple)
+            if (aspect is ISimpleAspect simple)
             {
                 jpath.Append($".{simple.Parent.GetAspectPath()}");
                 if (platform != Platform.Unspecified)

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Management.Automation;
 using cmi.mc.config.ModelContract;
 
 namespace cmi.mc.config.ModelComponents.Decorators
@@ -13,7 +12,7 @@ namespace cmi.mc.config.ModelComponents.Decorators
 
         /// <param name="simpleAspect">Aspect to decorate.</param>
         /// <param name="tenantPlaceholder">When found in the uri, this string is replaced with the tenant name.</param>
-        public TenantSpecificUriDecorator(ISimpleAspect simpleAspect, string tenantPlaceholder = "{tenantname}")
+        public TenantSpecificUriDecorator(ISimpleAspect simpleAspect, string tenantPlaceholder = "tenantname")
         {
             _cap = simpleAspect ?? throw new ArgumentNullException(nameof(simpleAspect));
 
@@ -59,10 +58,7 @@ namespace cmi.mc.config.ModelComponents.Decorators
         }
         public Type Type => _cap.Type;
         public AxSupport AxSupport => _cap.AxSupport;
-        public IReadOnlyList<ValidateArgumentsAttribute> ValidationAttributes => _cap.ValidationAttributes;
         public void TestValue(object value, ITenant tenant = null, Platform platform = Platform.Unspecified) => _cap.TestValue(value, tenant, platform);
-        public void AddValidationAttribute(ValidateArgumentsAttribute validator) =>
-            _cap.AddValidationAttribute(validator);
         #endregion
     }
 }

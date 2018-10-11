@@ -8,6 +8,7 @@ namespace cmi.mc.config.ModelContract
         bool IsRequired { get; set; }
         Type Type { get; }
         AxSupport AxSupport { get; }
+        bool IsPlatformSpecific { get; set; }
 
         /// <summary>
         /// Tests if the given value is valid for this aspect.

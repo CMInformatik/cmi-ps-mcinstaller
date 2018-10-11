@@ -8,5 +8,6 @@ namespace cmi.mc.config.ModelContract
         IReadOnlyDictionary<string, IAspect> Aspects { get; }
         IComplexAspect AddAspect(IAspect aspect);
         IComplexAspect AddAspect(params IAspect[] aspect);
+        IComplexAspect AddAspect(IEnumerable<IAspect> aspect);
     }
 }

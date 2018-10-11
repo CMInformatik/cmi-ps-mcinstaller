@@ -396,6 +396,49 @@ namespace cmi.mc.config.Tests
 
         #endregion
 
+        #region dependencies
+
+        [Test]
+        public void Should_Throw_When_DependencyIsNotFullfilled()
+        {
+            const string json = @"
+            {
+	            ""tenant1"": {
+		            ""common"": {},
+		            ""sitzungsvorbereitung"": {
+		            }
+	            }
+            }";
+
+            var c = Configuration.ReadFromString(json, TestModel);
+            void D() => c["tenant1"].Set(App.Sitzungsvorbereitung, "service.allowDokumenteAnnotations", true, false);
+
+            Assert.Throws(typeof(AspectDependencyNotFulfilledException), D);
+            Assert.That(c["tenant1"].Get(App.Sitzungsvorbereitung, "service.allowDokumenteAnnotations"), Is.Null);
+        }
+
+        [Test]
+        public void Should_EnsuresDependency_When_EnsureDependencyIsSet()
+        {
+            const string json = @"
+            {
+	            ""tenant1"": {
+		            ""common"": {},
+		            ""sitzungsvorbereitung"": {
+		            }
+	            }
+            }";
+
+            var c = Configuration.ReadFromString(json, TestModel);
+            c["tenant1"].Set(App.Sitzungsvorbereitung, "service.allowDokumenteAnnotations", true, true);
+
+            Assert.That(c["tenant1"].Get(App.Sitzungsvorbereitung, "service.allowDokumenteAnnotations"), Is.True);
+            Assert.That(c["tenant1"].Get(App.Common, "ui.pdf.editor"), Is.EqualTo("pdftools"));
+        }
+
+        #endregion
+
+
         [Test]
         public void Should_UpdateAppDirectory_When_EnabledApp()
         {

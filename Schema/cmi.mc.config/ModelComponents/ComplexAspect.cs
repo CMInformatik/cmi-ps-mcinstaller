@@ -50,6 +50,10 @@ namespace cmi.mc.config.ModelComponents
             return exceptions.Any() ? throw new AggregateException(exceptions) : this;
         }
 
+        public IComplexAspect AddAspect(IEnumerable<IAspect> aspect) => aspect == null ? this : AddAspect(aspect.ToArray());
+
+        public override IAspect this[string name] => AspectsInternal[name];
+
         public override IEnumerable<IAspect> Traverse()
         {
             yield return this;

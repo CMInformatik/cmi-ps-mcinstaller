@@ -88,7 +88,7 @@ namespace cmi.mc.config.ModelComponents
 
             var errors = summary.Errors.Select(error => new ValueValidationException(error)).ToList();
             if (!errors.Any()) return;
-            if (errors.Count > 1)
+            if (errors.Count == 1)
             {
                 throw errors.First();
             }

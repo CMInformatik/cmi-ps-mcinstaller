@@ -65,5 +65,7 @@ namespace cmi.mc.config.ModelComponents
 
         public override string ToString() => GetAspectPath();
         public abstract IEnumerable<IAspect> Traverse();
+
+        public virtual IAspect this[string name] => name.Equals(this.Name) ? this : null;
     }
 }

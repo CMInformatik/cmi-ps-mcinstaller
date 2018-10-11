@@ -51,6 +51,7 @@ namespace cmi.mc.config.ModelComponents.Decorators
         public IAspect AddDependency(params IAspectDependency[] dependency) => _cap.AddDependency(dependency);
         public string GetAspectPath() => _cap.GetAspectPath();
         public IEnumerable<IAspect> Traverse() => _cap.Traverse();
+        public IAspect this[string name] => _cap[name];
         public bool IsRequired
         {
             get => _cap.IsRequired;
@@ -58,6 +59,11 @@ namespace cmi.mc.config.ModelComponents.Decorators
         }
         public Type Type => _cap.Type;
         public AxSupport AxSupport => _cap.AxSupport;
+        public bool IsPlatformSpecific
+        {
+            get => _cap.IsPlatformSpecific;
+            set => _cap.IsPlatformSpecific = value;
+        }
         public void TestValue(object value, ITenant tenant = null, Platform platform = Platform.Unspecified) => _cap.TestValue(value, tenant, platform);
         #endregion
     }

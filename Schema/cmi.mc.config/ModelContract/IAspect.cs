@@ -12,5 +12,6 @@ namespace cmi.mc.config.ModelContract
         IAspect AddDependency(params IAspectDependency[] dependency);
         string GetAspectPath();
         IEnumerable<IAspect> Traverse();
+        IAspect this[string name] { get; }
     }
 }

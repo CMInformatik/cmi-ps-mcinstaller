@@ -69,10 +69,16 @@ namespace cmi.mc.config.ModelComponents.Decorators
         public IAspect AddDependency(params IAspectDependency[] dependency) => _cap.AddDependency(dependency);
         public string GetAspectPath() => _cap.GetAspectPath();
         public IEnumerable<IAspect> Traverse() => _cap.Traverse();
+        public IAspect this[string name] => _cap[name];
         public bool IsRequired
         {
             get => _cap.IsRequired;
             set => _cap.IsRequired = value;
+        }
+        public bool IsPlatformSpecific
+        {
+            get => _cap.IsPlatformSpecific;
+            set => _cap.IsPlatformSpecific = value;
         }
         public Type Type => _cap.Type;
         public AxSupport AxSupport => _cap.AxSupport;

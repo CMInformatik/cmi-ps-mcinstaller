@@ -80,7 +80,6 @@
     <Compile Include="ModelContract\IAspect.cs" />
     <Compile Include="ModelContract\IComplexAspect.cs" />
     <Compile Include="ModelContract\ISimpleAspect.cs" />
-    <Compile Include="ModelContract\PlatformNotSupportedException.cs" />
     <Compile Include="ModelComponents\SimpleAspect.cs" />
     <Compile Include="ModelComponents\Dependencies\SimpleAspectDependency.cs" />
     <Compile Include="ModelComponents\Tenant.cs" />

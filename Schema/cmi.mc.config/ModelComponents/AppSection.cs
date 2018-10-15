@@ -3,7 +3,7 @@ using cmi.mc.config.ModelContract;
 
 namespace cmi.mc.config.ModelComponents
 {
-    public class AppSection : ComplexAspect
+    internal class AppSection : ComplexAspect
     {
         public App App { get; }
 

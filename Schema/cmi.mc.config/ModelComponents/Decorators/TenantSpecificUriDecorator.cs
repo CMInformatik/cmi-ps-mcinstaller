@@ -47,8 +47,6 @@ namespace cmi.mc.config.ModelComponents.Decorators
             set => _cap.Parent = value;
         }
         public IAspect Root => _cap.Root;
-        public IAspect AddDependency(IAspectDependency dependency) => _cap.AddDependency(dependency);
-        public IAspect AddDependency(params IAspectDependency[] dependency) => _cap.AddDependency(dependency);
         public string GetAspectPath() => _cap.GetAspectPath();
         public IEnumerable<IAspect> Traverse() => _cap.Traverse();
         public IAspect this[string name] => _cap[name];

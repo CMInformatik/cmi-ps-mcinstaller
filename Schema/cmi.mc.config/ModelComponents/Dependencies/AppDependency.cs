@@ -12,20 +12,18 @@ namespace cmi.mc.config.ModelComponents.Dependencies
             _requiredApp = requiredApp;
         }
 
-        public void Verify(ITenant tenant, App app, IAspect aspect)
+        public void Verify(ITenant tenant, App app)
         {
             Debug.Assert(tenant != null);
-            Debug.Assert(aspect != null);
             if (!tenant.Has(_requiredApp))
             {
-                throw new AspectDependencyNotFulfilledException($"{aspect.GetAspectPath()}:{_requiredApp} requires to be enabled when this property is set.");
+                throw new AspectDependencyNotFulfilledException($"{_requiredApp} needs to be enabled for the requested configuration setting.");
             }
         }
 
-        public void Ensure(ITenant tenant, App app, IAspect aspect)
+        public void Ensure(ITenant tenant, App app)
         {
             Debug.Assert(tenant != null);
-            Debug.Assert(aspect != null);
             if (!tenant.Has(_requiredApp))
             {
                 tenant.Add(_requiredApp);

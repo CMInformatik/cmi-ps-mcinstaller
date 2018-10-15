@@ -15,18 +15,6 @@ namespace cmi.mc.config.ModelDefault
     {
         private class Validator<T> : AbstractValidator<T>{}
 
-        private static readonly AbstractValidator<string> StringNotNullValidator;
-        private static readonly AbstractValidator<Uri> UriNotNullValidator;
-
-        static CommonModel()
-        {
-            StringNotNullValidator = new Validator<string>();
-            StringNotNullValidator.RuleFor(s => s).NotEmpty();
-
-            UriNotNullValidator = new Validator<Uri>();
-            UriNotNullValidator.RuleFor(u => u.AbsolutePath).NotEmpty();
-        }
-
         public static AppSection GetModel(Uri defaultServiceUrl)
         {
             var app = new AppSection(App.Common);
@@ -64,13 +52,13 @@ namespace cmi.mc.config.ModelDefault
                 ));
             api.AddAspect(
                 new DefaultValueDecorator(
-                    new SimpleAspect<string>("public", null) { IsRequired = true },
+                    new SimpleAspect<string>("public", "/proxy/pub") { IsRequired = true },
                     $"/proxy/{DefaultValueDecorator.TenantNamePlaceholder}pub",
                     true
                 ));
             api.AddAspect(
                 new DefaultValueDecorator(
-                    new SimpleAspect<string>("private", null) { IsRequired = true },
+                    new SimpleAspect<string>("private", "/proxy/pri") { IsRequired = true },
                     $"/proxy/{DefaultValueDecorator.TenantNamePlaceholder}pri",
                     true
                 ));
@@ -157,48 +145,37 @@ namespace cmi.mc.config.ModelDefault
             dbDir.AddDependency(new AppDependency(App.Dossierbrowser));
             dbDir.AddAspect(
                 new TenantSpecificUriDecorator(
-                    NotNullAspect("web", new Uri(defaultServiceUrl, $"{App.Dossierbrowser.ToConfigurationName()}/tenantname"))
+                    new SimpleAspect<Uri>("web", new Uri(defaultServiceUrl, $"{App.Dossierbrowser.ToConfigurationName()}/tenantname"))
                 ));
             dbDir.AddAspect(
-                NotNullAspect("app", "cmidossierbrowser://"),
-                NotNullAspect("dossierDetail", "/Abstr/{GUID}"));
+                new SimpleAspect<string>("app", "cmidossierbrowser://"),
+                new SimpleAspect<string>("dossierDetail", "/Abstr/{GUID}"));
 
             // sitzungsvorbereitung
             var svDir = new ComplexAspect(App.Sitzungsvorbereitung.ToConfigurationName());
             svDir.AddDependency(new AppDependency(App.Sitzungsvorbereitung));
             svDir.AddAspect(
                 new TenantSpecificUriDecorator(
-                    NotNullAspect("web", new Uri(defaultServiceUrl, $"{App.Sitzungsvorbereitung.ToConfigurationName()}/tenantname"))
+                    new SimpleAspect<Uri>("web", new Uri(defaultServiceUrl, $"{App.Sitzungsvorbereitung.ToConfigurationName()}/tenantname"))
                 ));
             svDir.AddAspect(
-                NotNullAspect("app", "cmisitzungsvorbereitung://"),
-                NotNullAspect("sitzungDetail", "/{Gremium}/{Jahr}/{GUID}"),
-                NotNullAspect("traktandumDetail", "/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}"));
+                new SimpleAspect<string>("app", "cmisitzungsvorbereitung://"),
+                new SimpleAspect<string>("sitzungDetail", "/{Gremium}/{Jahr}/{GUID}"),
+                new SimpleAspect<string>("traktandumDetail", "/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}"));
 
             // zusammenarbeit dritte
             var zdDir = new ComplexAspect(App.Zusammenarbeitdritte.ToConfigurationName());
             zdDir.AddDependency(new AppDependency(App.Zusammenarbeitdritte));
             zdDir.AddAspect(
                 new TenantSpecificUriDecorator(
-                    NotNullAspect("web", new Uri(defaultServiceUrl, $"{App.Zusammenarbeitdritte.ToConfigurationName()}/tenantname"))
+                    new SimpleAspect<Uri>("web", new Uri(defaultServiceUrl, $"{App.Zusammenarbeitdritte.ToConfigurationName()}/tenantname"))
                 ));
             zdDir.AddAspect(
-                NotNullAspect("app", "cmisitzungsvorbereitung://"),
-                NotNullAspect("aktivitaetDetail", "/Aktivitaet/{GUID}")
+                new SimpleAspect<string>("app", "cmisitzungsvorbereitung://"),
+                new SimpleAspect<string>("aktivitaetDetail", "/Aktivitaet/{GUID}")
             );
 
             return new ComplexAspect("appDirectory").AddAspect(dbDir, svDir, zdDir);
         }
-
-        private static ISimpleAspect NotNullAspect(string name, string value)
-        {
-            return new SimpleAspect<string>(name, value, AxSupport.R16_1, StringNotNullValidator);
-        }
-
-        private static ISimpleAspect NotNullAspect(string name, Uri value)
-        {
-            return new SimpleAspect<Uri>(name, value, AxSupport.R16_1, UriNotNullValidator);
-        }
-
     }
 }

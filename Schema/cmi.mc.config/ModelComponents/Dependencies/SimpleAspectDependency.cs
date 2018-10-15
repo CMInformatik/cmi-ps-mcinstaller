@@ -26,7 +26,7 @@ namespace cmi.mc.config.ModelComponents.Dependencies
             _requiresSpecificValue = false;
         }
 
-        public void Verify(ITenant tenant, App app, IAspect aspect)
+        public void Verify(ITenant tenant, App app)
         {
             if (!_requiresSpecificValue)
             {
@@ -47,11 +47,11 @@ namespace cmi.mc.config.ModelComponents.Dependencies
             }
         }
 
-        public void Ensure(ITenant tenant, App app, IAspect aspect)
+        public void Ensure(ITenant tenant, App app)
         {
             try
             {
-                Verify(tenant, app, aspect);
+                Verify(tenant, app);
             }
             catch (AspectDependencyNotFulfilledException)
             {

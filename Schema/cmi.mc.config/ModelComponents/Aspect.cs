@@ -6,7 +6,7 @@ using cmi.mc.config.ModelContract;
 
 namespace cmi.mc.config.ModelComponents
 {
-    public abstract class Aspect : IAspect
+    internal abstract class Aspect : IAspect
     {
         public IAspect Parent { get; set; }
         public IAspect Root => Parent == null ? this : Parent.Root;

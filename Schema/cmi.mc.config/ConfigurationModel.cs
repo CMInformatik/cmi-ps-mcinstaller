@@ -7,9 +7,9 @@ using cmi.mc.config.ModelDefault;
 
 namespace cmi.mc.config
 {
-    public class ConfigurationModel : IReadOnlyDictionary<App, AppSection>
+    public class ConfigurationModel : IReadOnlyDictionary<App, IComplexAspect>
     {
-        private readonly IDictionary<App, AppSection> _internal = new Dictionary<App, AppSection>();
+        private readonly IDictionary<App, IComplexAspect> _internal = new Dictionary<App, IComplexAspect>();
         public Uri DefaultServiceUrl { get; private set; } = new Uri("https://mobile.cmiaxioma.ch");
 
         /// provide prameterless constructor
@@ -24,9 +24,9 @@ namespace cmi.mc.config
 
             // apps with default model
             _internal.Add(App.Common, CommonModel.GetModel(DefaultServiceUrl));
-            _internal.Add(App.Zusammenarbeitdritte, ZdModel.GetModel(_internal[App.Common]));
-            _internal.Add(App.Dossierbrowser, DbModel.GetModel(_internal[App.Common]));
-            _internal.Add(App.Sitzungsvorbereitung, SvModel.GetModel(_internal[App.Common]));
+            _internal.Add(App.Zusammenarbeitdritte, ZdModel.GetModel(_internal[App.Common] as AppSection));
+            _internal.Add(App.Dossierbrowser, DbModel.GetModel(_internal[App.Common] as AppSection));
+            _internal.Add(App.Sitzungsvorbereitung, SvModel.GetModel(_internal[App.Common] as AppSection));
 
             // add remaining apps without model
             foreach (var appValue in System.Enum.GetValues(typeof(App)))
@@ -75,19 +75,19 @@ namespace cmi.mc.config
         }
 
         #region IReadOnlyDictionary impl.
-        public AppSection this[App key] => _internal[key];
+        public IComplexAspect this[App key] => _internal[key];
 
         public IEnumerable<App> Keys => _internal.Keys;
 
-        public IEnumerable<AppSection> Values => _internal.Values;
+        public IEnumerable<IComplexAspect> Values => _internal.Values;
 
         public int Count => _internal.Count;
 
         public bool ContainsKey(App key) => _internal.ContainsKey(key);
 
-        public IEnumerator<KeyValuePair<App, AppSection>> GetEnumerator() => _internal.GetEnumerator();
+        public IEnumerator<KeyValuePair<App, IComplexAspect>> GetEnumerator() => _internal.GetEnumerator();
 
-        public bool TryGetValue(App key, out AppSection value) => _internal.TryGetValue(key, out value);
+        public bool TryGetValue(App key, out IComplexAspect value) => _internal.TryGetValue(key, out value);
 
         IEnumerator IEnumerable.GetEnumerator() => _internal.GetEnumerator();
 

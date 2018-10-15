@@ -10,19 +10,23 @@ namespace cmi.mc.config.ModelContract
     public class ValueValidationException : Exception
     {
         public ValidationFailure Error { get; }
+        public IAspect Aspect { get; }
 
-        public ValueValidationException(ValidationFailure error): base($"{error?.PropertyName}: {error?.ErrorMessage}")
+        public ValueValidationException(IAspect aspect, ValidationFailure error): base($"{aspect?.GetAspectPath()}: {error?.ErrorMessage}")
         {
             Error = error;
+            Aspect = aspect;
         }
 
-        public ValueValidationException(string message, ValidationFailure error) : base(message)
+        public ValueValidationException(string message, IAspect aspect, ValidationFailure error) : base(message)
         {
             Error = error;
+            Aspect = aspect;
         }
-        public ValueValidationException(string message, Exception inner, ValidationFailure error) : base(message, inner)
+        public ValueValidationException(string message, IAspect aspect, Exception inner, ValidationFailure error) : base(message, inner)
         {
             Error = error;
+            Aspect = aspect;
         }
     }
 }

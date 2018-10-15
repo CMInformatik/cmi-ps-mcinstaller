@@ -3,14 +3,43 @@ using System.Collections.Generic;
 using System.Linq;
 using cmi.mc.config.ModelContract;
 using FluentValidation;
-using PlatformNotSupportedException = cmi.mc.config.ModelContract.PlatformNotSupportedException;
 
 namespace cmi.mc.config.ModelComponents
 {
-    public class SimpleAspect<T> : Aspect, ISimpleAspect
+    internal class SimpleAspect<T> : Aspect, ISimpleAspect
     {
+        private class ValidationContext
+        {
+            public object Value { get; }
+            public Platform Platform { get; }
+            public ITenant Tenant { get; }
+
+            public ValidationContext(object value, Platform platform, ITenant tenant)
+            {
+                Value = value;
+                Platform = platform;
+                Tenant = tenant;
+            }
+        }
+
+        private class InternalValidator : AbstractValidator<ValidationContext>
+        {
+            public InternalValidator(ISimpleAspect aspect)
+            {
+                if(aspect == null) throw new ArgumentNullException(nameof(aspect));
+
+                RuleFor(c => c.Value).Must(o => o == null || (o is T))
+                    .WithMessage(v => $"{v?.GetType().FullName} is not convertable to type {typeof(T).FullName}");
+                RuleFor(c => c.Value).NotNull()
+                    .WithMessage($"The aspect '{aspect.GetAspectPath()}' does not accept null values");
+                RuleFor(c => c.Platform).Must(p => aspect.IsPlatformSpecific || p == Platform.Unspecified)
+                    .WithMessage($"'{aspect.GetAspectPath()}' does not support platform specific values");
+            }
+        }
+
         private readonly IDictionary<Platform, T> _defaultValue = new Dictionary<Platform, T>();
         private readonly IValidator<T> _validator;
+        private readonly InternalValidator _internalValidator;
         private bool? _isRequired = null;
         private bool? _isPlatformSpecific = null;
 
@@ -19,11 +48,14 @@ namespace cmi.mc.config.ModelComponents
             _defaultValue.Add(Platform.Unspecified, defaultValue);
             AxSupport = axSupport;
             _validator = validator;
+            _internalValidator = new InternalValidator(this);
             TestValue(defaultValue);
         }
 
+        /// <inheritdoc />
         public Type Type => typeof(T);
 
+        /// <inheritdoc />
         public bool IsPlatformSpecific
         {
             get => _isPlatformSpecific ?? false;
@@ -39,6 +71,8 @@ namespace cmi.mc.config.ModelComponents
                 }
             }
         }
+
+        /// <inheritdoc />
         public bool IsRequired
         {
             get => _isRequired ?? false;
@@ -54,6 +88,8 @@ namespace cmi.mc.config.ModelComponents
                 }
             }
         }
+
+        /// <inheritdoc />
         public AxSupport AxSupport { get; }
 
         public void SetDefaultValue(Platform platform, T value)
@@ -67,6 +103,7 @@ namespace cmi.mc.config.ModelComponents
             _defaultValue.Add(platform, value);
         }
 
+        /// <inheritdoc />
         public object GetDefaultValue(ITenant tenant = null, Platform platform = Platform.Unspecified)
         {
             return _defaultValue.ContainsKey(platform)? _defaultValue[platform] : _defaultValue[Platform.Unspecified];
@@ -75,18 +112,16 @@ namespace cmi.mc.config.ModelComponents
         /// <inheritdoc />
         public void TestValue(object value, ITenant tenant = null, Platform platform = Platform.Unspecified)
         {
-            if (!IsPlatformSpecific && platform != Platform.Unspecified)
-            {
-                throw new PlatformNotSupportedException($"{GetAspectPath()} does not support platform specific values", platform);
-            }
+            Validate(_internalValidator, new ValidationContext(value, platform, tenant));
+            Validate(_validator, value);
+        }
 
-            if (value == null && IsRequired) throw new ArgumentNullException(nameof(value), "A value for this aspect is required");
-            if (value != null && !(value is T)) throw  new ArgumentException($"{value.GetType().FullName} is not convertable to type {typeof(T).FullName}");
-
-            var summary = _validator?.Validate(value);
+        private void Validate(IValidator validator, object value)
+        {
+            var summary = validator?.Validate(value);
             if (summary == null || summary.IsValid) return;
 
-            var errors = summary.Errors.Select(error => new ValueValidationException(error)).ToList();
+            var errors = summary.Errors.Select(error => new ValueValidationException(this, error)).ToList();
             if (!errors.Any()) return;
             if (errors.Count == 1)
             {

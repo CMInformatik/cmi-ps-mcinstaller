@@ -26,7 +26,7 @@ namespace cmi.mc.config.Tests
             complex3.AddAspect(complex4);
             complex4.AddAspect(complex5);
             complex5.AddAspect(simple1);
-            TestModel[App.Common].AddAspect(complex1);
+            ((AppSection)TestModel[App.Common]).AddAspect(complex1);
             Leaf = simple1;
         }
     }

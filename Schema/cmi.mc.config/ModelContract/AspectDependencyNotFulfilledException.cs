@@ -2,6 +2,8 @@
 
 namespace cmi.mc.config.ModelContract
 {
+    //ToDo: Add more informations/properties to exception
+    //ToDo: Add doc.
     public class AspectDependencyNotFulfilledException : Exception
     {
         public AspectDependencyNotFulfilledException() { }

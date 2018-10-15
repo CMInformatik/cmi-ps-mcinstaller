@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace cmi.mc.config.ModelComponents
 {
-    public class Tenant : ITenant
+    internal class Tenant : ITenant
     {
         private JProperty _configuration;
         private readonly ConfigurationModel _model;
@@ -70,11 +70,11 @@ namespace cmi.mc.config.ModelComponents
                 {
                     if (ensureDependencies)
                     {
-                        dep.Ensure(this, app, _model[app]);
+                        dep.Ensure(this, app);
                     }
                     else
                     {
-                        dep.Verify(this,  app, _model[app]);
+                        dep.Verify(this, app);
                     }
                 }
             });
@@ -231,11 +231,11 @@ namespace cmi.mc.config.ModelComponents
                 {
                     if (ensureDependencies)
                     {
-                        dep.Ensure(this, app, aspect);
+                        dep.Ensure(this, app);
                     }
                     else
                     {
-                        dep.Verify(this, app, aspect);
+                        dep.Verify(this, app);
                     }
                 }
             }

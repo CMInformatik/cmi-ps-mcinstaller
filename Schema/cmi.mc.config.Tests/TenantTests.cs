@@ -35,8 +35,8 @@ namespace cmi.mc.config.Tests
             var complex2 = new ComplexAspect("complex2", ConfigControlAttribute.Extend);
             complex2.AddAspect(simple3);
 
-            TestModel[App.Common].AddAspect(complex1);
-            TestModel[App.Dossierbrowser].AddAspect(complex2);
+            ((AppSection)TestModel[App.Common]).AddAspect(complex1);
+            ((AppSection)TestModel[App.Dossierbrowser]).AddAspect(complex2);
         }
 
         #region service base url
@@ -71,7 +71,7 @@ namespace cmi.mc.config.Tests
         {
             var c = Configuration.ReadFromString("{ \"tenant1\": { \"common\":{}}}", TestModel);
             void D() => c["tenant1"].Set(App.Common, "complex1.simple1", new int());
-            Assert.Throws(typeof(ArgumentException), D);
+            Assert.Throws(typeof(ValueValidationException), D);
         }
 
         [Test]

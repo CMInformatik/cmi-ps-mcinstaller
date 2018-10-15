@@ -5,7 +5,7 @@ using cmi.mc.config.ModelContract;
 
 namespace cmi.mc.config.ModelComponents
 {
-    public class ComplexAspect : Aspect, IComplexAspect
+    internal class ComplexAspect : Aspect, IComplexAspect
     {
         protected readonly Dictionary<string, IAspect> AspectsInternal = new Dictionary<string, IAspect>();
         public ConfigControlAttribute DefaultCca { get; }

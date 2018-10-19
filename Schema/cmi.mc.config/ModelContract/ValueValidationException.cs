@@ -9,7 +9,7 @@ namespace cmi.mc.config.ModelContract
 {
     public class ValueValidationException : Exception
     {
-        public ValidationFailure Error { get; }
+        public ValidationFailure Error { get; } // ToDo: Remove FulentValidation Dependency
         public IAspect Aspect { get; }
 
         public ValueValidationException(IAspect aspect, ValidationFailure error): base($"{aspect?.GetAspectPath()}: {error?.ErrorMessage}")

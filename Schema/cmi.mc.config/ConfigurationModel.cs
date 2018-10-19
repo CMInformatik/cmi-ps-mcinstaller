@@ -48,6 +48,20 @@ namespace cmi.mc.config
             return (T) r;
         }
 
+        public IAspect TryGetAspect(App app, string aspectPath)
+        {
+            try
+            {
+                return GetAspect(app, aspectPath);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            return null;
+        }
+
+        /// <exception cref="KeyNotFoundException">When an aspect with the given path could not be found.</exception>
         public IAspect GetAspect(App app, string aspectPath)
         {
             Aspect.ThrowIfInvalidAspectPath(aspectPath);

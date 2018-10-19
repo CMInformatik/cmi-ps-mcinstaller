@@ -17,6 +17,7 @@ namespace cmi.mc.config.ModelComponents
         protected Aspect(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
+            if(McConfigSymbols.ReservedWords.Contains(name)) throw new ArgumentException($"{name} is a reserved word and can not be used as name.", nameof(name));
             Name = name;
         }
 
@@ -45,6 +46,7 @@ namespace cmi.mc.config.ModelComponents
             return exceptions.Any() ? throw new AggregateException(exceptions) : this;
         }
 
+        /// <inheritdoc/>
         public virtual string GetAspectPath()
         {
             if (this.Parent == null) return this.Name;
@@ -64,8 +66,11 @@ namespace cmi.mc.config.ModelComponents
         }
 
         public override string ToString() => GetAspectPath();
+
+        /// <inheritdoc/>
         public abstract IEnumerable<IAspect> Traverse();
 
+        /// <inheritdoc/>
         public virtual IAspect this[string name] => name.Equals(this.Name) ? this : null;
     }
 }

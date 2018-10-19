@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using cmi.mc.config.ModelContract;
 using Newtonsoft.Json.Linq;
+using Exception = System.Exception;
+using CValException = cmi.mc.config.ModelContract.ConfigurationValidationException;
 
 namespace cmi.mc.config.ModelComponents
 {
@@ -13,8 +15,6 @@ namespace cmi.mc.config.ModelComponents
     {
         private JProperty _configuration;
         private readonly ConfigurationModel _model;
-        private static readonly IEnumerable<string> CcaNames = Enum.GetValues(typeof(ConfigControlAttribute)).Cast<ConfigControlAttribute>().Select(e => e.ToConfigurationName());
-        private static readonly IList<Platform> Platforms = (Platform[])Enum.GetValues(typeof(Platform));
 
         public string Name => _configuration.Name;
         public Uri ServiceBaseUrl { get; private set; }
@@ -40,8 +40,8 @@ namespace cmi.mc.config.ModelComponents
             else
             {
                 ServiceBaseUrl = _model.DefaultServiceUrl;
-            }            
-            if(!Has(App.Common)) RevertChangesOnFailure(() => Add(App.Common));
+            }
+            if (!Has(App.Common)) RevertChangesOnFailure(() => Add(App.Common));
         }
 
         private void RevertChangesOnFailure(Action action)
@@ -64,20 +64,7 @@ namespace cmi.mc.config.ModelComponents
 
         public void Add(App app, bool ensureDependencies = false)
         {
-            RevertChangesOnFailure(() =>
-            {
-                foreach (var dep in _model[app].Dependencies)
-                {
-                    if (ensureDependencies)
-                    {
-                        dep.Ensure(this, app);
-                    }
-                    else
-                    {
-                        dep.Verify(this, app);
-                    }
-                }
-            });
+            RevertChangesOnFailure(() => _model[app].TestDependencies(this, app, ensureDependencies));
             if (!Has(app))
             {
                 RevertChangesOnFailure(() =>
@@ -90,7 +77,7 @@ namespace cmi.mc.config.ModelComponents
                     // update app directory
                     try
                     {
-                        var appDirAspect = _model.GetAspect<IComplexAspect>(App.Common, $"appDirectory.{app.ToConfigurationName()}");
+                        var appDirAspect = _model.GetAspect<IAspect>(App.Common, $"appDirectory.{app.ToConfigurationName()}");
                         Set(App.Common, appDirAspect.GetAspectPath());
                     }
                     catch (KeyNotFoundException)
@@ -117,13 +104,13 @@ namespace cmi.mc.config.ModelComponents
             var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
 
             // test for platform specific property
-            var jPathPlatform = BuildJPath(_configuration, app, model, platform);    
+            var jPathPlatform = Configuration.BuildJPath(Name, app, model, platform);
             var token = _configuration.Root.SelectTokens(jPathPlatform).SingleOrDefault();
 
             if (token != null || platform == Platform.Unspecified) return !(token is null);
 
             // test for platform unspecific property
-            var jPathNoplatform = BuildJPath(_configuration, app, model, Platform.Unspecified);
+            var jPathNoplatform = Configuration.BuildJPath(Name, app, model, Platform.Unspecified);
             token = _configuration.Root.SelectTokens(jPathNoplatform).SingleOrDefault();
             return !(token is null);
         }
@@ -132,19 +119,16 @@ namespace cmi.mc.config.ModelComponents
         {
             var model = _model.GetAspect<IAspect>(app, aspectPath);
             if (!Has(app)) return;
-            var xpath = BuildJPath(_configuration, app, model, platform);
+            var xpath = Configuration.BuildJPath(Name, app, model, platform);
             var token = _configuration.Root.SelectTokens(xpath).SingleOrDefault();
-            RevertChangesOnFailure(() =>
-            {
-                token?.Parent?.Remove();
-            });
+            RevertChangesOnFailure(() => token?.Parent?.Remove());
         }
 
         public void Remove(App app, string aspectPath)
         {
             RevertChangesOnFailure(() =>
             {
-                foreach (var pl in Platforms)
+                foreach (var pl in McConfigSymbols.Platforms)
                 {
                     Remove(app, aspectPath, pl);
                 }
@@ -155,25 +139,21 @@ namespace cmi.mc.config.ModelComponents
         {
             var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
             if (!Has(app)) return null;
-            var xpath = BuildJPath(_configuration, app, model, platform);
+            var xpath = Configuration.BuildJPath(Name, app, model, platform);
             var token = _configuration.Root.SelectTokens(xpath).SingleOrDefault();
-            if (token != null && !(token is JValue))
+            switch (token)
             {
-                throw new InvalidDataException($"A json value ({nameof(JValue)}) was expected at path {xpath}, but a {token.GetType().Name} was found.");
+                case null:
+                    return null;
+                case JArray _ when !model.Type.IsArray:
+                    throw new InvalidCastException($"{model.GetAspectPath()} is not epected to contain a json array.");
             }
-            return (token as JValue)?.Value;
+            return token.ToObject(model.Type);
         }
 
         public T Get<T>(App app, string aspectPath, Platform platform = Platform.Unspecified)
         {
             var result = Get(app, aspectPath);
-
-            // no implicit cast from string to uri, but json reader delivers string, when uri is expected
-            if (typeof(T) == typeof(Uri) && result is string s)
-            {
-                result = new Uri(s);
-            }
-
             return (result != null) ? (T)result : default(T);
         }
 
@@ -218,33 +198,17 @@ namespace cmi.mc.config.ModelComponents
         {
             Debug.Assert(aspect != null);
             // is app enabled
-            if (!Has(app))
-            {
-                throw new InvalidOperationException($"RequiredApp {app.ToString()} is not enabled for tenant {Name}");
-            }
+            if (!Has(app)) throw new InvalidOperationException($"RequiredApp {app.ToString()} is not enabled for tenant {Name}");
             // test value
             if (aspect is ISimpleAspect simpleAspect) simpleAspect.TestValue(value, this, platform);
             // test dependencies
-            if (aspect.Dependencies.Any())
-            {
-                foreach (var dep in aspect.Dependencies)
-                {
-                    if (ensureDependencies)
-                    {
-                        dep.Ensure(this, app);
-                    }
-                    else
-                    {
-                        dep.Verify(this, app);
-                    }
-                }
-            }
+            aspect.TestDependencies(this, app, ensureDependencies);
 
-            JProperty parentConfigPart;
+            JProperty parentProperty;
             // get parent property
             if (aspect.Parent != null)
             {
-                var xpath = $"$.{_configuration.Path}.{app.ToConfigurationName()}.{aspect.Parent.GetAspectPath()}";
+                var xpath = Configuration.BuildJPath(Name, app, aspect.Parent, Platform.Unspecified);
                 // is parent present?
                 if (_configuration.Root.SelectTokens(xpath).SingleOrDefault() == null)
                 {
@@ -252,37 +216,25 @@ namespace cmi.mc.config.ModelComponents
                     SetPropertyInternal(app, aspect.Parent, new object(), ensureDependencies, platform);
                 }
                 // parent property should now exists
-                parentConfigPart = (JProperty)_configuration.Root.SelectTokens(xpath).Single().Parent;
+                parentProperty = (JProperty)_configuration.Root.SelectTokens(xpath).Single().Parent;
             }
             else
             {
-                parentConfigPart = _configuration.GetChildProperty(app);
+                parentProperty = _configuration.GetChildProperty(app);
             }
-            Debug.Assert(parentConfigPart != null);
+            Debug.Assert(parentProperty != null);
 
             // create property
-            SetPropertyValue(parentConfigPart, aspect, value, platform);
+            SetPropertyValue(parentProperty, aspect, value, platform);
 
             // set default cca
-            if (aspect is IComplexAspect complexAspect)
-            {
-                SetDefaultCCa(complexAspect, parentConfigPart.GetChildProperty(complexAspect));
-            }
+            if (aspect is IComplexAspect ca) parentProperty.GetChildProperty(ca).SetDefaultCCa(ca);
         }
 
-        private static void SetDefaultCCa(IComplexAspect aspect, JProperty configPart)
-        {
-            Debug.Assert(aspect != null);
-            Debug.Assert(configPart != null);
-            if (aspect.DefaultCca == ConfigControlAttribute.NotSet) return; // no default cca defined      
-            if (configPart.Value.Children<JProperty>().Any(p => CcaNames.Contains(p.Name))) return; // a cca is already set
-            configPart.Value[aspect.DefaultCca.ToConfigurationName()] = JToken.FromObject(true);
-        }
-
-        private static void SetPropertyValue(JProperty parentConfigPart, IAspect aspect, object value,
+        private static void SetPropertyValue(JProperty parentProperty, IAspect aspect, object value,
             Platform platform)
         {
-            Debug.Assert(parentConfigPart != null);
+            Debug.Assert(parentProperty != null);
             Debug.Assert(aspect != null);
 
             if (aspect is ISimpleAspect)
@@ -291,20 +243,20 @@ namespace cmi.mc.config.ModelComponents
                 {
                     // If platform specific value equals unspecific value,
                     // there is no need to set the property platform specific.
-                    if ((parentConfigPart.GetChildProperty(aspect.Name)?.Value as JValue)?.Value?.Equals(value) == true)
+                    if ((parentProperty.GetChildProperty(aspect.Name)?.Value as JValue)?.Value?.Equals(value) == true)
                     {
                         // remove the old platform specific value, if present
-                        parentConfigPart.GetChildProperty(platform)?.GetChildProperty(aspect.Name)?.Remove();
+                        parentProperty.GetChildProperty(platform)?.GetChildProperty(aspect.Name)?.Remove();
                         return;
                     }
 
                     // Is a platform specific value really required? If all other platforms have the same value,
                     // the property can be set as platform unspecific.
-                    var allPlatformsWithSameValue = Platforms.ToList()
+                    var allPlatformsWithSameValue = McConfigSymbols.Platforms.ToList()
                         .Where(p => p != Platform.Unspecified && p != platform)
                         .All(p =>
                         {
-                            var currentValue = (parentConfigPart.GetChildProperty(p)?.GetChildProperty(aspect.Name)?.Value as JValue)?.Value;
+                            var currentValue = (parentProperty.GetChildProperty(p)?.GetChildProperty(aspect.Name)?.Value as JValue)?.Value;
                             return currentValue != null && currentValue.Equals(value);
                         });
                     if (allPlatformsWithSameValue)
@@ -316,58 +268,207 @@ namespace cmi.mc.config.ModelComponents
                 if (platform == Platform.Unspecified)
                 {
                     // remove more specific platform properties
-                    foreach (var p in Platforms)
+                    foreach (var p in McConfigSymbols.Platforms)
                     {
-                        (parentConfigPart.GetChildProperty(p)?.Value as JProperty)?
+                        (parentProperty.GetChildProperty(p)?.Value as JProperty)?
                             .GetChildProperty(aspect.Name)?.Remove();
                     }
                 }
                 else
                 {
-                    if (!parentConfigPart.HasChildProperty(platform))
+                    if (!parentProperty.HasChildProperty(platform))
                     {
                         // add more specific platform property
-                        parentConfigPart.Value[platform.ToConfigurationName()] = JToken.FromObject(new object());
+                        parentProperty.Value[platform.ToConfigurationName()] = JToken.FromObject(new object());
                     }
                     // set parent config part to more specific platform
-                    parentConfigPart = parentConfigPart.GetChildProperty(platform);
+                    parentProperty = parentProperty.GetChildProperty(platform);
                 }
             }
 
             // set property value
-            if (parentConfigPart.HasChildProperty(aspect))
+            if (parentProperty.HasChildProperty(aspect))
             {
                 // property is already present. Overwriting
-                parentConfigPart.GetChildProperty(aspect).Value = new JValue(value);
+                parentProperty.GetChildProperty(aspect).Value = new JValue(value);
             }
             else
             {
                 // adding new property
-                parentConfigPart.Value[aspect.Name] = JToken.FromObject(value);
+                parentProperty.Value[aspect.Name] = JToken.FromObject(value);
             }
         }
 
-        private static string BuildJPath(JToken tenantConfiguration, App app, IAspect aspect, Platform platform)
+        #region validate
+        /// <inheritdoc />
+        public void Validate(AxSupport axVersion)
         {
-            Debug.Assert(tenantConfiguration != null);
-            Debug.Assert(aspect != null);
-            var jpath = new StringBuilder($"$.{tenantConfiguration.Path}");
-            jpath.Append($".{app.ToConfigurationName()}");
-
-            if (aspect is ISimpleAspect simple)
+            // common app is required
+            if (!Has(App.Common))
             {
-                jpath.Append($".{simple.Parent.GetAspectPath()}");
-                if (platform != Platform.Unspecified)
+                throw new CValException($"The property {App.Common.ToConfigurationName()} is required, but was not found", null, null);
+            }
+            IList<Exception> problems = new List<Exception>();
+            foreach (var app in McConfigSymbols.Apps.Where(Has))
+            {
+                // validate JTokens
+                foreach (var child in _configuration.GetChildProperty(app).Value.Children())
                 {
-                    jpath.Append($".{platform.ToConfigurationName()}");
+                    ValidateInternal(child, app, Platform.Unspecified, string.Empty, axVersion, ref problems);
                 }
-                jpath.Append($".{simple.Name}");
+                // required aspects must be present
+                foreach (var aspect in _model[app].Traverse().OfType<ISimpleAspect>().Where(a => a.IsRequired))
+                {
+                    if (!Has(app, aspect.GetAspectPath()))
+                    {
+                        problems.Add(new CValException($"{aspect.GetAspectPath()} is required, but was not found in the configuration.", aspect, null));
+                    }
+                }
             }
-            else
-            {
-                jpath.Append($".{aspect.GetAspectPath()}");
-            }
-            return jpath.ToString();
+            if (problems.Any()) throw new AggregateException(problems);
         }
+
+        /// <summary>
+        /// Validate complex aspect.
+        /// </summary>
+        private void ValidateInternal(JProperty jProperty, IComplexAspect aspect, Platform platform,
+            ref IList<Exception> problems)
+        {
+            // complex aspects can not be platform specific
+            if (platform != Platform.Unspecified)
+            {
+                throw new CValException($"{aspect.GetAspectPath()} can not be platform specific", aspect, jProperty);
+            }
+            // the value must be a jobject
+            if (jProperty.Value == null || jProperty.Value.Type != JTokenType.Object)
+            {
+                throw new CValException($"{aspect.GetAspectPath()} does not contain json object", aspect, jProperty);
+            }
+            // cca with default value?
+            if (jProperty.GetCCa() != aspect.DefaultCca)
+            {
+                problems.Add(new CValException(
+                    $"{aspect.GetAspectPath()} is expected to have the {nameof(ConfigControlAttribute)} to be set to {aspect.DefaultCca.ToConfigurationName()}",
+                    aspect, jProperty
+                ));
+            }
+        }
+
+        /// <summary>
+        /// Validate simple aspect.
+        /// </summary>
+        private void ValidateInternal(ISimpleAspect aspect, App app, Platform platform, AxSupport axVersion)
+        {
+            var value = Get(app, aspect.GetAspectPath(), platform);
+            // is supported?
+            if (aspect.AxSupport > axVersion)
+            {
+                throw new CValException($"{aspect.GetAspectPath()} is not supported in version {axVersion}", aspect, null);
+            }
+            // validate value
+            if (value != null) aspect.TestValue(value, this, platform);
+            // dependencies
+            aspect.TestDependencies(this, app);
+        }
+
+        /// <summary>
+        /// Validate <seealso cref="ConfigControlAttribute"/>.
+        /// </summary>
+        private void ValidateInternal(ConfigControlAttribute cca, ref IList<Exception> problems)
+        {
+            switch (cca)
+            {
+                case ConfigControlAttribute.Replace:
+                case ConfigControlAttribute.Remove:
+                    problems.Add(new CValException($"{nameof(ConfigControlAttribute)} with value {cca.ToConfigurationName()} is not supported by this tool.", null, null));
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        /// <summary>
+        /// Validate <seealso cref="JToken"/>.
+        /// </summary>
+        private void ValidateInternal(JToken config, App app, Platform platform, string path, AxSupport axVersion, ref IList<Exception> problems)
+        {
+            try
+            {
+                if (!(config is JProperty jProperty))
+                {
+                    throw new CValException($"{config.Path} is not a json property", null, config);
+                }
+
+                // handle cca properties are handled with the complex properties
+                if (McConfigSymbols.CcaNames.Contains(jProperty.Name))
+                {
+                    ValidateInternal(McConfigSymbols.GetCca(jProperty.Name), ref problems);
+                    return;
+                }
+
+                // handle platform
+                if (McConfigSymbols.PlatformNames.Contains(jProperty.Name))
+                {
+                    if (!(jProperty.Value is JObject))
+                    {
+                        throw new CValException($"{config.Path} is expected to contain a json object ({nameof(JObject)}).", null, config);
+                    }
+                    foreach (var child in jProperty.Value.Children())
+                    {
+                        ValidateInternal(child, app, McConfigSymbols.GetPlatform(jProperty.Name), path, axVersion, ref problems);
+                    }
+                    return;
+                }
+
+                // handle aspect
+                var aspectPath = string.IsNullOrWhiteSpace(path) ? jProperty.Name : $"{path}.{jProperty.Name}";
+                IAspect model;
+                try
+                {
+                    model = _model.GetAspect(app, aspectPath);
+                }
+                catch (KeyNotFoundException e)
+                {
+                    // often the configuration was made in the wrong app section
+                    // maybe the aspect path can be found in an other app
+                    foreach (var otherApp in McConfigSymbols.Apps)
+                    {
+                        if (otherApp == app) continue;
+                        if (_model.TryGetAspect(otherApp, aspectPath) != null)
+                        {
+                            throw new CValException($"{aspectPath} is not expected to be configured in app {app}. Move to {otherApp}.", null, e, config);
+                        }
+                    }
+                    throw;
+                }
+
+                Debug.Assert(aspectPath != null);
+                Debug.Assert(model != null, $"{nameof(_model.GetAspect)} should throw if aspect can not be found");
+
+                switch (model)
+                {
+                    case IComplexAspect complexModel:
+                        ValidateInternal(jProperty, complexModel, platform, ref problems);
+                        foreach (var child in jProperty.Value.Children())
+                        {
+                            // handle childs
+                            ValidateInternal(child, app, platform, aspectPath, axVersion, ref problems);
+                        }
+
+                        break;
+                    case ISimpleAspect simpleModel:
+                        ValidateInternal(simpleModel, app, platform, axVersion);
+                        break;
+                    default:
+                        throw new NotImplementedException($"Validation for aspects of type {model?.GetType().FullName} is not implemented");
+                }
+            }
+            catch (Exception e)
+            {
+                problems.Add(e);
+            }
+        }
+
+        #endregion
     }
 }

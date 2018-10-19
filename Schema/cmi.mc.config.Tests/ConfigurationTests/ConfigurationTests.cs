@@ -35,7 +35,7 @@ namespace cmi.mc.config.Tests.ConfigurationTests
         [Test]
         public void Should_ReturnInstance_When_ReadConfigurationFromString()
         {
-            var c = Configuration.ReadFromString("{ \"tenant1\":{},\"tenant2\":{}  }", Model);
+            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\":{},\"tenant2\":{}}}", Model);
             Assert.IsInstanceOf(typeof(Configuration), c);
         }
 
@@ -67,7 +67,7 @@ namespace cmi.mc.config.Tests.ConfigurationTests
         [Test]
         public void Should_ReturnTenantObjects_When_GetTenantIterator()
         {
-            var c = Configuration.ReadFromString("{ \"tenant1\":{},\"tenant2\":{},\"tenant3\":{} }", Model);
+            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\":{},\"tenant2\":{},\"tenant3\":{}}}", Model);
             var tenants = c.Select(t => t.Name).ToList();
             CollectionAssert.AreEqual(new[] { "tenant1", "tenant2", "tenant3" }, tenants);
         }
@@ -75,7 +75,7 @@ namespace cmi.mc.config.Tests.ConfigurationTests
         [Test]
         public void Should_ContainTenantWithName_When_TenantWithNameIsAdded()
         {
-            var c = Configuration.ReadFromString("{ \"tenant1\":{},\"tenant2\":{},\"tenant3\":{} }", Model);
+            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\":{},\"tenant2\":{},\"tenant3\":{}}}", Model);
             c.AddTenant("tenant4");
             
             Assert.AreEqual("tenant4", c["tenant4"].Name);
@@ -85,7 +85,7 @@ namespace cmi.mc.config.Tests.ConfigurationTests
         [Test]
         public void Should_ReturnExistingTenant_When_TenantWithDublicateNameIsAdded()
         {
-            var c = Configuration.ReadFromString("{ \"tenant1\":{},\"tenant2\":{},\"tenant3\":{} }", Model);
+            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\":{},\"tenant2\":{},\"tenant3\":{}}}", Model);
             c.AddTenant("tenant3");
 
             Assert.AreEqual("tenant3", c["tenant3"].Name);

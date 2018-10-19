@@ -8,17 +8,23 @@ using cmi.mc.config.ModelComponents.Decorators;
 using cmi.mc.config.ModelComponents.Dependencies;
 using cmi.mc.config.ModelContract;
 using FluentValidation;
+using Newtonsoft.Json.Linq;
 
 namespace cmi.mc.config.ModelDefault
 {
     internal static class CommonModel
     {
-        private class Validator<T> : AbstractValidator<T>{}
+        private class Validator<T> : AbstractValidator<T> { }
 
         public static AppSection GetModel(Uri defaultServiceUrl)
         {
             var app = new AppSection(App.Common);
             var model = new List<IAspect>();
+
+            var svDir = new AppDirAspect(App.Sitzungsvorbereitung);
+            var dbDir = new AppDirAspect(App.Dossierbrowser);
+            var zdDir = new AppDirAspect(App.Zusammenarbeitdritte);
+            model.Add(new ComplexAspect("appDirectory").AddAspect(dbDir, svDir, zdDir));
 
             var account = new ComplexAspect("account", ConfigControlAttribute.Private);
             account.AddAspect(new SimpleAspect<bool>("changePassword", false));
@@ -35,7 +41,6 @@ namespace cmi.mc.config.ModelDefault
             model.Add(account);
             model.Add(service);
             model.Add(GetApi(defaultServiceUrl));
-            model.Add(GetAppDirModel(defaultServiceUrl));
             model.Add(GetSecurity());
             model.Add(GetUi());
             model.Add(GetLanguages());
@@ -67,7 +72,7 @@ namespace cmi.mc.config.ModelDefault
 
         private static IAspect GetLanguages()
         {
-            string[] langKeys = {"de", "fr"};
+            string[] langKeys = { "de", "fr" };
 
             var langValidator = new Validator<string[]>();
             langValidator.RuleFor(a => a)
@@ -79,7 +84,7 @@ namespace cmi.mc.config.ModelDefault
                 .WithMessage($"Only this values are allowed: {string.Join(",", langKeys)}");
 
             var languages = new ComplexAspect("languages");
-            languages.AddAspect(new SimpleAspect<string[]>("supports", new[] { langKeys.First()}, AxSupport.R16_1, langValidator));
+            languages.AddAspect(new SimpleAspect<string[]>("supports", new[] { langKeys.First() }, AxSupport.R16_1, langValidator));
             languages.AddAspect(new SimpleAspect<string>("default", langKeys.First(), AxSupport.R16_1, defaultValidator));
 
             return languages;
@@ -94,7 +99,7 @@ namespace cmi.mc.config.ModelDefault
 
             var ui = new ComplexAspect("ui", ConfigControlAttribute.Private);
             var pdf = new ComplexAspect("pdf");
-            pdf.AddAspect(new SimpleAspect<bool>("inTabs", false) {IsPlatformSpecific = true});
+            pdf.AddAspect(new SimpleAspect<bool>("inTabs", false) { IsPlatformSpecific = true });
             pdf.AddAspect(new SimpleAspect<string>("viewer", String.Empty, AxSupport.R16_1, viewerVal) { IsPlatformSpecific = true });
             pdf.AddAspect(new SimpleAspect<string>("editor", String.Empty, AxSupport.R18, editorVal) { IsPlatformSpecific = true });
 
@@ -131,51 +136,11 @@ namespace cmi.mc.config.ModelDefault
             security.AddAspect(allowRememberMe);
             security.AddAspect(new SimpleAspect<bool>("defaultRememberMe", false));
 
-            foreach(var secAspect in security.Traverse().OfType<ISimpleAspect>())
+            foreach (var secAspect in security.Traverse().OfType<ISimpleAspect>())
             {
                 secAspect.IsPlatformSpecific = true;
             }
             return security;
-        }
-
-        private static IAspect GetAppDirModel(Uri defaultServiceUrl)
-        {
-            // dossierbrowser
-            var dbDir = new ComplexAspect(App.Dossierbrowser.ToConfigurationName());
-            dbDir.AddDependency(new AppDependency(App.Dossierbrowser));
-            dbDir.AddAspect(
-                new TenantSpecificUriDecorator(
-                    new SimpleAspect<Uri>("web", new Uri(defaultServiceUrl, $"{App.Dossierbrowser.ToConfigurationName()}/tenantname"))
-                ));
-            dbDir.AddAspect(
-                new SimpleAspect<string>("app", "cmidossierbrowser://"),
-                new SimpleAspect<string>("dossierDetail", "/Abstr/{GUID}"));
-
-            // sitzungsvorbereitung
-            var svDir = new ComplexAspect(App.Sitzungsvorbereitung.ToConfigurationName());
-            svDir.AddDependency(new AppDependency(App.Sitzungsvorbereitung));
-            svDir.AddAspect(
-                new TenantSpecificUriDecorator(
-                    new SimpleAspect<Uri>("web", new Uri(defaultServiceUrl, $"{App.Sitzungsvorbereitung.ToConfigurationName()}/tenantname"))
-                ));
-            svDir.AddAspect(
-                new SimpleAspect<string>("app", "cmisitzungsvorbereitung://"),
-                new SimpleAspect<string>("sitzungDetail", "/{Gremium}/{Jahr}/{GUID}"),
-                new SimpleAspect<string>("traktandumDetail", "/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}"));
-
-            // zusammenarbeit dritte
-            var zdDir = new ComplexAspect(App.Zusammenarbeitdritte.ToConfigurationName());
-            zdDir.AddDependency(new AppDependency(App.Zusammenarbeitdritte));
-            zdDir.AddAspect(
-                new TenantSpecificUriDecorator(
-                    new SimpleAspect<Uri>("web", new Uri(defaultServiceUrl, $"{App.Zusammenarbeitdritte.ToConfigurationName()}/tenantname"))
-                ));
-            zdDir.AddAspect(
-                new SimpleAspect<string>("app", "cmisitzungsvorbereitung://"),
-                new SimpleAspect<string>("aktivitaetDetail", "/Aktivitaet/{GUID}")
-            );
-
-            return new ComplexAspect("appDirectory").AddAspect(dbDir, svDir, zdDir);
         }
     }
 }

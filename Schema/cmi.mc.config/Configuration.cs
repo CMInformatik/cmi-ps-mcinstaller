@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using cmi.mc.config.ModelComponents;
 using cmi.mc.config.ModelContract;
 using Newtonsoft.Json.Linq;
@@ -11,7 +13,7 @@ namespace cmi.mc.config
 {
     public class Configuration : IEnumerable<ITenant>
     {
-        private readonly JObject _configuration;
+        private readonly JProperty _configuration;
         private readonly ConfigurationModel _model;
 
         protected Configuration(JObject configuration, ConfigurationModel model)
@@ -22,11 +24,43 @@ namespace cmi.mc.config
                 throw new InvalidDataException($"The root token is not a json object.");
             }
 
-            _configuration = configuration;
+            if(!configuration.ContainsKey("tenants")){
+                throw new InvalidDataException($"The root json object does not have a property of name 'tenants'.");
+            }
+
+            _configuration = configuration.Property("tenants");
             _model = model ?? throw new ArgumentNullException(nameof(model));
         }
 
-#region read and write json
+        /// <summary>
+        /// Builds the jpath for the specified tenant and aspect.
+        /// </summary>
+        /// <param name="platform">Build the jpath platform specific.</param>
+        /// <returns></returns>
+        public static string BuildJPath(string tenantName, App app, IAspect aspect, Platform platform)
+        {
+            if(string.IsNullOrWhiteSpace(tenantName)) throw new ArgumentNullException(nameof(tenantName));
+            if(aspect == null) throw new ArgumentNullException(nameof(aspect));
+
+            var jpath = new StringBuilder($"$.tenants.{tenantName}.{app.ToConfigurationName()}");
+
+            if (aspect is ISimpleAspect simple)
+            {
+                jpath.Append($".{simple.Parent.GetAspectPath()}");
+                if (platform != Platform.Unspecified)
+                {
+                    jpath.Append($".{platform.ToConfigurationName()}");
+                }
+                jpath.Append($".{simple.Name}");
+            }
+            else
+            {
+                jpath.Append($".{aspect.GetAspectPath()}");
+            }
+            return jpath.ToString();
+        }
+
+        #region read and write json
 
         public static Configuration ReadFromFile(string path, ConfigurationModel model)
         {
@@ -58,7 +92,7 @@ namespace cmi.mc.config
             System.IO.File.WriteAllText(path,ToString());
         }
 
-        public override string ToString() => _configuration.ToString();
+        public override string ToString() => _configuration.Root.ToString();
 
 #endregion
 
@@ -72,11 +106,11 @@ namespace cmi.mc.config
         public ITenant AddTenant(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
-            if (!_configuration.ContainsKey(name))
+            if (!_configuration.HasChildProperty(name))
             {
-                _configuration.Add(name, JToken.FromObject(new object()));
+                _configuration.Value[name] = JToken.FromObject(new object());
             }
-            return new Tenant(_configuration.Property(name),_model);       
+            return new Tenant(_configuration.GetChildProperty(name),_model);       
         }
 
         /// <summary>
@@ -88,17 +122,17 @@ namespace cmi.mc.config
         {
             get
             {
-                if (_configuration.ContainsKey(name))
+                if (_configuration.HasChildProperty(name))
                 {
-                    return new Tenant(_configuration.Property(name),_model);
+                    return new Tenant(_configuration.GetChildProperty(name),_model);
                 }
-                throw new ArgumentOutOfRangeException(nameof(name));
+                throw new ArgumentOutOfRangeException(nameof(name), $"No tenant with name '{name}' was found.");
             }
         }
 
         public IEnumerator<ITenant> GetEnumerator()
         {
-            return _configuration.Properties().Select(e => new Tenant(e,_model)).GetEnumerator();
+            return _configuration.Value.Children<JProperty>().Select(e => new Tenant(e,_model)).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

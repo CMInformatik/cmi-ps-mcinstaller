@@ -1,52 +1,52 @@
 {
-    "test":  {
-                 "common":  {
-                                "api":  {
-                                            "server":  "https://mobile.cmiaxioma.ch/mobileclients",
-                                            "public":  "/proxy/testpub",
-                                            "private":  "/proxy/testpri"
-                                        },
-                                "appDirectory":  {
-                                                     "sitzungsvorbereitung":  {
-                                                                                  "app":  "cmisitzungsvorbereitung://",
-                                                                                  "traktandumDetail":  "/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}",
-                                                                                  "web":  "https://mobile.cmiaxioma.ch/sitzungsvorbereitung/test",
-                                                                                  "sitzungDetail":  "/{Gremium}/{Jahr}/{GUID}"
-                                                                              },
-                                                     "dossierbrowser":  {
-                                                                            "dossierDetail":  "/Abstr/{GUID}",
-                                                                            "app":  "cmidossierbrowser://",
-                                                                            "web":  "https://mobile.cmiaxioma.ch/dossierbrowser/test"
-                                                                        },
-                                                     "zusammenarbeitdritte":  {
-                                                                                  "aktivitaetDetail":  "/Aktivitaet/{GUID}",
-                                                                                  "web":  "https://mobile.cmiaxioma.ch/zusammenarbeitdritte/test"
-                                                                              }
-                                                 },
-                                "languages":  {
-                                                  "default":  "De"
-                                              },
-                                "account":  {
-                                                "_private":  true,
-                                                "changePassword":  true
-                                            },
-                                "pdf":  {
-                                            "viewer":  "browser",
-                                            "editor":  "pdftools"
-                                        }
-                            },
-                 "Sitzungsvorbereitung":  {
-                                              "service":  {
-                                                              "supportsPersoenlicheDokumente":  true,
-                                                              "allowDokumenteCopyAsPersoenlich":  true,
-                                                              "allowDokumenteAnnotations":  true
-                                                          }
-                                          },
-                 "Dossierbrowser":  {
-
-                                    },
-                 "Zusammenarbeitdritte":  {
-
-                                          }
-             }
+    "tenants": {
+        "test": {
+            "common": {
+                "api": {
+                    "server": "https://mobile.cmiaxioma.ch/mobileclients",
+                    "public": "/proxy/testpub",
+                    "private": "/proxy/testpri"
+                },
+                "appDirectory": {
+                    "sitzungsvorbereitung": {
+                        "app": "cmisitzungsvorbereitung://",
+                        "traktandumDetail": "/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}",
+                        "web": "https://mobile.cmiaxioma.ch/sitzungsvorbereitung/test",
+                        "sitzungDetail": "/{Gremium}/{Jahr}/{GUID}"
+                    },
+                    "dossierbrowser": {
+                        "dossierDetail": "/Abstr/{GUID}",
+                        "app": "cmidossierbrowser://",
+                        "web": "https://mobile.cmiaxioma.ch/dossierbrowser/test"
+                    },
+                    "zusammenarbeitdritte": {
+                        "aktivitaetDetail": "/Aktivitaet/{GUID}",
+                        "web": "https://mobile.cmiaxioma.ch/zusammenarbeitdritte/test"
+                    }
+                },
+                "languages": {
+                    "default": "De"
+                },
+                "account": {
+                    "_private": true,
+                    "changePassword": true
+                },
+                "pdf": {
+                    "viewer": "browser",
+                    "editor": "pdftools"
+                }
+            },
+            "Sitzungsvorbereitung": {
+                "service": {
+                    "supportsPersoenlicheDokumente": true,
+                    "allowDokumenteCopyAsPersoenlich": true,
+                    "allowDokumenteAnnotations": true
+                }
+            },
+            "Dossierbrowser": {
+            },
+            "Zusammenarbeitdritte": {
+            }
+        }
+    }
 }

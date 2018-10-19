@@ -26,5 +26,7 @@ namespace cmi.mc.config.ModelContract
         void Set(App app, string aspectPath, object value, bool ensureDependencies = false, Platform platform = Platform.Unspecified);
 
         void Set(App app, string aspectPath, bool ensureDependencies = false, Platform platform = Platform.Unspecified);
+
+        void Validate(AxSupport axVersion);
     }
 }

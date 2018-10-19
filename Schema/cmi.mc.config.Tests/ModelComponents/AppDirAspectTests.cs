@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelImpl;
 using Moq;
 using Newtonsoft.Json.Linq;
 
@@ -21,7 +22,7 @@ namespace cmi.mc.config.ModelComponents.Tests
             tenantMock.Setup(t => t.ServiceBaseUrl).Returns(new Uri("https://my.uri.ch:500/"));
             tenantMock.Setup(t => t.Name).Returns("mytenant");
 
-            foreach (var app in McConfigSymbols.Apps)
+            foreach (var app in McSymbols.Apps)
             {
                 var appDir = new AppDirAspect(app);
                 var defaultValue = appDir.GetDefaultValue(tenantMock.Object);
@@ -37,7 +38,7 @@ namespace cmi.mc.config.ModelComponents.Tests
             tenantMock.Setup(t => t.ServiceBaseUrl).Returns(new Uri("https://my.uri.ch:500/"));
             tenantMock.Setup(t => t.Name).Returns("mytenant");
 
-            foreach (var app in McConfigSymbols.Apps)
+            foreach (var app in McSymbols.Apps)
             {
                 var appDir = new AppDirAspect(app);
                 var defaultValue = appDir.GetDefaultValue(tenantMock.Object);
@@ -52,7 +53,7 @@ namespace cmi.mc.config.ModelComponents.Tests
             tenantMock.Setup(t => t.ServiceBaseUrl).Returns(new Uri("https://my.uri.ch:500/"));
             tenantMock.Setup(t => t.Name).Returns("mytenant");
 
-            foreach (var app in McConfigSymbols.Apps)
+            foreach (var app in McSymbols.Apps)
             {
                 var appDir = new AppDirAspect(app);
                 var defaultValue = appDir.GetDefaultValue(tenantMock.Object);

@@ -1,10 +1,6 @@
 ﻿using NUnit.Framework;
-using cmi.mc.config;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using cmi.mc.config.Extensions;
 using cmi.mc.config.ModelContract;
 using Newtonsoft.Json.Linq;
 
@@ -34,7 +30,7 @@ namespace cmi.mc.config.Tests
         [Test()]
         public void Should_ReturnCCa_When_GetCca()
         {
-            foreach (var cca in McConfigSymbols.ConfigControlAttributes)
+            foreach (var cca in McSymbols.ConfigControlAttributes)
             {
                 Assert.That(JObject.Parse($" {{ \"prop\": {{ \"{cca.ToConfigurationName()}\": true }}}}").Property("prop").GetCCa(), Is.EqualTo(cca));
             }

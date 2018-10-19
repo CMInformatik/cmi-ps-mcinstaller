@@ -1,6 +1,6 @@
 ﻿using System;
-using cmi.mc.config.ModelComponents.Dependencies;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelImpl.Dependencies;
 using Moq;
 using NUnit.Framework;
 

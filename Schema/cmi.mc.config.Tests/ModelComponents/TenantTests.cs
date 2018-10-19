@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using cmi.mc.config.ModelComponents;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelImpl;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;

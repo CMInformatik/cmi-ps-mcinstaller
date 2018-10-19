@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmi.mc.config", "cmi.mc.con
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmi.mc.config.Tests", "cmi.mc.config.Tests\cmi.mc.config.Tests.csproj", "{7B58BC01-7FF6-470A-8313-D7F9C6E4A20C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmi.mc.config.ModelContract", "cmi.mc.config.ModelContract\cmi.mc.config.ModelContract.csproj", "{14117063-AE35-4646-A480-E0C65544882B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmi.mc.config.ModelContract.Tests", "cmi.mc.config.ModelContract.Tests\cmi.mc.config.ModelContract.Tests.csproj", "{BC602000-BDA8-4F5C-B165-2C86870B2F37}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{7B58BC01-7FF6-470A-8313-D7F9C6E4A20C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B58BC01-7FF6-470A-8313-D7F9C6E4A20C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B58BC01-7FF6-470A-8313-D7F9C6E4A20C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14117063-AE35-4646-A480-E0C65544882B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14117063-AE35-4646-A480-E0C65544882B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14117063-AE35-4646-A480-E0C65544882B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14117063-AE35-4646-A480-E0C65544882B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC602000-BDA8-4F5C-B165-2C86870B2F37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC602000-BDA8-4F5C-B165-2C86870B2F37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC602000-BDA8-4F5C-B165-2C86870B2F37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC602000-BDA8-4F5C-B165-2C86870B2F37}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

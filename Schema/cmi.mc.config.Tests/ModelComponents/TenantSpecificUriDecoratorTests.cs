@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using cmi.mc.config.ModelComponents.Decorators;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelImpl.Decorators;
 using Moq;
 using NUnit.Framework;
 

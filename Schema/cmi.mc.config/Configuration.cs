@@ -5,8 +5,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using cmi.mc.config.ModelComponents;
+using cmi.mc.config.Extensions;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelImpl;
 using Newtonsoft.Json.Linq;
 
 namespace cmi.mc.config
@@ -47,10 +48,7 @@ namespace cmi.mc.config
             if (aspect is ISimpleAspect simple)
             {
                 jpath.Append($".{simple.Parent.GetAspectPath()}");
-                if (platform != Platform.Unspecified)
-                {
-                    jpath.Append($".{platform.ToConfigurationName()}");
-                }
+                if (platform != Platform.Unspecified) jpath.Append($".{platform.ToConfigurationName()}");
                 jpath.Append($".{simple.Name}");
             }
             else

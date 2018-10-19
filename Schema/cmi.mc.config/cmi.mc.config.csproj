@@ -58,41 +58,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="JPropertyCcaExtensions.cs" />
-    <Compile Include="IAspectExtensions.cs" />
-    <Compile Include="ModelComponents\AppDirAspect.cs" />
-    <Compile Include="ModelComponents\Decorators\DefaultValueDecorator.cs" />
-    <Compile Include="ModelComponents\Decorators\TenantSpecificUriDecorator.cs" />
-    <Compile Include="ModelComponents\Dependencies\AppDependency.cs" />
-    <Compile Include="ModelContract\ConfigurationValidationException.cs" />
-    <Compile Include="ModelContract\InvalidConfigurationException.cs" />
-    <Compile Include="ModelContract\ITenant.cs" />
-    <Compile Include="ModelComponents\AppSection.cs" />
-    <Compile Include="ModelComponents\Aspect.cs" />
-    <Compile Include="ModelComponents\ComplexAspect.cs" />
+    <Compile Include="Extensions\JPropertyCcaExtensions.cs" />
+    <Compile Include="Extensions\IAspectExtensions.cs" />
+    <Compile Include="ModelImpl\AppDirAspect.cs" />
+    <Compile Include="ModelImpl\Decorators\DefaultValueDecorator.cs" />
+    <Compile Include="ModelImpl\Decorators\TenantSpecificUriDecorator.cs" />
+    <Compile Include="ModelImpl\Dependencies\AppDependency.cs" />
+    <Compile Include="ModelImpl\AppSection.cs" />
+    <Compile Include="ModelImpl\Aspect.cs" />
+    <Compile Include="ModelImpl\ComplexAspect.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="ConfigurationModel.cs" />
-    <Compile Include="ModelContract\AspectDependencyNotFulfilledException.cs" />
-    <Compile Include="ModelContract\Enums.cs" />
-    <Compile Include="JPropertyChildExtensions.cs" />
-    <Compile Include="ModelContract\IAspectDependency.cs" />
-    <Compile Include="ModelContract\McConfigSymbols.cs" />
-    <Compile Include="ModelContract\ValueValidationException.cs" />
-    <Compile Include="ModelDefault\CommonModel.cs" />
-    <Compile Include="ModelDefault\DbModel.cs" />
-    <Compile Include="ModelDefault\SvModel.cs" />
-    <Compile Include="ModelDefault\ZdModel.cs" />
+    <Compile Include="Extensions\JPropertyChildExtensions.cs" />
+    <Compile Include="McModel\CommonModel.cs" />
+    <Compile Include="McModel\DbModel.cs" />
+    <Compile Include="McModel\SvModel.cs" />
+    <Compile Include="McModel\ZdModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ModelContract\IAspect.cs" />
-    <Compile Include="ModelContract\IComplexAspect.cs" />
-    <Compile Include="ModelContract\ISimpleAspect.cs" />
-    <Compile Include="ModelComponents\SimpleAspect.cs" />
-    <Compile Include="ModelComponents\Dependencies\SimpleAspectDependency.cs" />
-    <Compile Include="ModelComponents\Tenant.cs" />
+    <Compile Include="ModelImpl\SimpleAspect.cs" />
+    <Compile Include="ModelImpl\Dependencies\SimpleAspectDependency.cs" />
+    <Compile Include="ModelImpl\Tenant.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\cmi.mc.config.ModelContract\cmi.mc.config.ModelContract.csproj">
+      <Project>{14117063-ae35-4646-a480-e0c65544882b}</Project>
+      <Name>cmi.mc.config.ModelContract</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -78,8 +78,6 @@
     <Compile Include="ConfigurationTests\ConfigurationTests.cs" />
     <Compile Include="JPropertyCcaExtensionsTests.cs" />
     <Compile Include="ModelComponents\AppDirAspectTests.cs" />
-    <Compile Include="ModelContract\EnumsTest.cs" />
-    <Compile Include="ModelContract\McConfigSymbolsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ModelComponents\DefaultValueDecoratorTests.cs" />
     <Compile Include="ModelComponents\SimpleAspectTests.cs" />
@@ -96,6 +94,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\cmi.mc.config.ModelContract\cmi.mc.config.ModelContract.csproj">
+      <Project>{14117063-ae35-4646-a480-e0c65544882b}</Project>
+      <Name>cmi.mc.config.ModelContract</Name>
+    </ProjectReference>
     <ProjectReference Include="..\cmi.mc.config\cmi.mc.config.csproj">
       <Project>{97970df6-4853-4b90-a0db-2ee2f865c001}</Project>
       <Name>cmi.mc.config</Name>

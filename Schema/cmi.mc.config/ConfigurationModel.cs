@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using cmi.mc.config.ModelComponents;
+using cmi.mc.config.McModel;
 using cmi.mc.config.ModelContract;
-using cmi.mc.config.ModelDefault;
+using cmi.mc.config.ModelImpl;
 
 namespace cmi.mc.config
 {

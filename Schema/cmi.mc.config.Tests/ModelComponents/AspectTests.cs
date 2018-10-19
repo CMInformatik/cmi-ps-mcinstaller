@@ -2,6 +2,7 @@
 using System.Linq;
 using cmi.mc.config.ModelComponents;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelImpl;
 using NUnit.Framework;
 
 namespace cmi.mc.config.Tests

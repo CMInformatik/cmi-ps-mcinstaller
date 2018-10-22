@@ -75,19 +75,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConfigurationTests\ConfigurationTests.cs" />
-    <Compile Include="JPropertyCcaExtensionsTests.cs" />
-    <Compile Include="ModelComponents\AppDirAspectTests.cs" />
+    <Compile Include="JsonConfigurationTests.cs" />
+    <Compile Include="Extensions\JPropertyCcaExtensionsTests.cs" />
+    <Compile Include="ModelImpl\AppDirAspectTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ModelComponents\DefaultValueDecoratorTests.cs" />
-    <Compile Include="ModelComponents\SimpleAspectTests.cs" />
-    <Compile Include="ModelComponents\TenantSpecificUriDecoratorTests.cs" />
-    <Compile Include="ModelComponents\TenantTests.cs" />
-    <Compile Include="ModelComponents\SimpleAspectDependencyTests.cs" />
-    <Compile Include="ModelComponents\AspectTests.cs" />
+    <Compile Include="ModelImpl\Decorators\DefaultValueDecoratorTests.cs" />
+    <Compile Include="ModelImpl\SimpleAspectTests.cs" />
+    <Compile Include="ModelImpl\Decorators\TenantSpecificUriDecoratorTests.cs" />
+    <Compile Include="ModelImpl\TenantTests.cs" />
+    <Compile Include="ModelImpl\Dependencies\SimpleAspectDependencyTests.cs" />
+    <Compile Include="ModelImpl\AspectTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ConfigurationTests\test.json">
+    <Content Include="test.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="app.config" />
@@ -103,6 +103,7 @@
       <Name>cmi.mc.config</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

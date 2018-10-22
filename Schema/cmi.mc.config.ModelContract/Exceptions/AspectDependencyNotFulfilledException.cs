@@ -6,16 +6,19 @@ namespace cmi.mc.config.ModelContract
     //ToDo: Add doc.
     public class AspectDependencyNotFulfilledException : Exception
     {
-        public AspectDependencyNotFulfilledException()
+        public App App { get; }
+
+        public AspectDependencyNotFulfilledException(App app) : this(app, $"Dependency not fulfilled.")
         {
         }
 
-        public AspectDependencyNotFulfilledException(string message) : base(message)
+        public AspectDependencyNotFulfilledException(App app, string message) : this(app, message, null)
         {
         }
 
-        public AspectDependencyNotFulfilledException(string message, Exception inner) : base(message, inner)
+        public AspectDependencyNotFulfilledException( App app, string message, Exception inner) : base(message, inner)
         {
+            App = app;
         }
     }
 }

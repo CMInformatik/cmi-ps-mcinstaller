@@ -6,9 +6,9 @@ using cmi.mc.config.ModelImpl;
 using cmi.mc.config.ModelImpl.Decorators;
 using FluentValidation;
 
-namespace cmi.mc.config.McModel
+namespace cmi.mc.config.DefaultSchema
 {
-    internal static class CommonModel
+    internal static class CommonSchema
     {
         private class Validator<T> : AbstractValidator<T> { }
 

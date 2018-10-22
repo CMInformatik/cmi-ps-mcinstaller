@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,25 +11,29 @@ using Newtonsoft.Json.Linq;
 
 namespace cmi.mc.config
 {
-    public class Configuration : IEnumerable<ITenant>
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents a json based mobile client configuration. 
+    /// </summary>
+    public class JsonConfiguration : IEnumerable<ITenant>
     {
         private readonly JProperty _configuration;
-        private readonly ConfigurationModel _model;
+        private readonly ISchema _schema;
 
-        protected Configuration(JObject configuration, ConfigurationModel model)
+        protected JsonConfiguration(JObject configuration, ISchema schema)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
             if (configuration.Type != JTokenType.Object)
             {
-                throw new InvalidDataException($"The root token is not a json object.");
+                throw new InvalidConfigurationException($"The root token is not a json object.", null, "$");
             }
 
             if(!configuration.ContainsKey("tenants")){
-                throw new InvalidDataException($"The root json object does not have a property of name 'tenants'.");
+                throw new InvalidConfigurationException($"The root json object does not have a property of name 'tenants'.", null, "$.tenants");
             }
 
             _configuration = configuration.Property("tenants");
-            _model = model ?? throw new ArgumentNullException(nameof(model));
+            _schema = schema ?? throw new ArgumentNullException(nameof(schema));
         }
 
         /// <summary>
@@ -41,43 +44,42 @@ namespace cmi.mc.config
         public static string BuildJPath(string tenantName, App app, IAspect aspect, Platform platform)
         {
             if(string.IsNullOrWhiteSpace(tenantName)) throw new ArgumentNullException(nameof(tenantName));
-            if(aspect == null) throw new ArgumentNullException(nameof(aspect));
 
             var jpath = new StringBuilder($"$.tenants.{tenantName}.{app.ToConfigurationName()}");
 
-            if (aspect is ISimpleAspect simple)
+            if (aspect is ISimpleAspect simple && simple.Parent != null)
             {
                 jpath.Append($".{simple.Parent.GetAspectPath()}");
                 if (platform != Platform.Unspecified) jpath.Append($".{platform.ToConfigurationName()}");
                 jpath.Append($".{simple.Name}");
             }
-            else
+            else if(aspect != null)
             {
                 jpath.Append($".{aspect.GetAspectPath()}");
             }
             return jpath.ToString();
         }
 
-        #region read and write json
+#region read and write json
 
-        public static Configuration ReadFromFile(string path, ConfigurationModel model)
+        public static JsonConfiguration ReadFromFile(string path, ISchema schema)
         {
-            if(model == null) throw new ArgumentNullException(nameof(model));
+            if(schema == null) throw new ArgumentNullException(nameof(schema));
             if (!System.IO.File.Exists(path)) throw new FileNotFoundException($"Could not find {path}", path);
-            return new Configuration(JObject.Parse(System.IO.File.ReadAllText(path)), model);
+            return new JsonConfiguration(JObject.Parse(System.IO.File.ReadAllText(path)), schema);
         }
 
-        public static Configuration New(ConfigurationModel model)
+        public static JsonConfiguration New(ISchema schema)
         {
-            if (model == null) throw new ArgumentNullException(nameof(model));
-            return new Configuration(JObject.Parse("{}"), model);
+            if (schema == null) throw new ArgumentNullException(nameof(schema));
+            return new JsonConfiguration(JObject.Parse("{\"tenants\":{}}"), schema);
         }
 
-        public static Configuration ReadFromString(string jsonString, ConfigurationModel model)
+        public static JsonConfiguration ReadFromString(string jsonString, ISchema schema)
         {
-            if (model == null) throw new ArgumentNullException(nameof(model));
+            if (schema == null) throw new ArgumentNullException(nameof(schema));
             if (string.IsNullOrWhiteSpace(jsonString)) throw new ArgumentNullException(nameof(jsonString));
-            return new Configuration(JObject.Parse(jsonString), model);
+            return new JsonConfiguration(JObject.Parse(jsonString), schema);
         }
 
         public void WriteToFile(string path, bool allowOverride = false)
@@ -108,7 +110,7 @@ namespace cmi.mc.config
             {
                 _configuration.Value[name] = JToken.FromObject(new object());
             }
-            return new Tenant(_configuration.GetChildProperty(name),_model);       
+            return new Tenant(_configuration.GetChildProperty(name),_schema);       
         }
 
         /// <summary>
@@ -122,7 +124,7 @@ namespace cmi.mc.config
             {
                 if (_configuration.HasChildProperty(name))
                 {
-                    return new Tenant(_configuration.GetChildProperty(name),_model);
+                    return new Tenant(_configuration.GetChildProperty(name),_schema);
                 }
                 throw new ArgumentOutOfRangeException(nameof(name), $"No tenant with name '{name}' was found.");
             }
@@ -130,7 +132,7 @@ namespace cmi.mc.config
 
         public IEnumerator<ITenant> GetEnumerator()
         {
-            return _configuration.Value.Children<JProperty>().Select(e => new Tenant(e,_model)).GetEnumerator();
+            return _configuration.Value.Children<JProperty>().Select(e => new Tenant(e,_schema)).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

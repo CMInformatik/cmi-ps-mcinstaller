@@ -4,7 +4,7 @@ using cmi.mc.config.ModelImpl.Decorators;
 using Moq;
 using NUnit.Framework;
 
-namespace cmi.mc.config.Tests
+namespace cmi.mc.config.Tests.ModelImpl.Decorators
 {
     [TestFixture]
     public class TenantSpecificUriDecoratorTests

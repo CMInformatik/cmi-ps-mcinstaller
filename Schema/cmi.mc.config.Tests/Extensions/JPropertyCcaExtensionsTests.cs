@@ -1,10 +1,10 @@
-﻿using NUnit.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using cmi.mc.config.Extensions;
 using cmi.mc.config.ModelContract;
 using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 
-namespace cmi.mc.config.Tests
+namespace cmi.mc.config.Tests.Extensions
 {
     [TestFixture()]
     public class JPropertyCcaExtensionsTests

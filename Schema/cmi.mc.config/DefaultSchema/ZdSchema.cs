@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
 using cmi.mc.config.ModelContract;
 using cmi.mc.config.ModelImpl;
 using cmi.mc.config.ModelImpl.Dependencies;
 
-namespace cmi.mc.config.McModel
+namespace cmi.mc.config.DefaultSchema
 {
-    internal static class ZdModel
+    internal static class ZdSchema
     {
         public static AppSection GetModel(AppSection commonSection)
         {
@@ -17,15 +16,15 @@ namespace cmi.mc.config.McModel
             var allowDokumenteAddNew = commonSection["service"]?["allowDokumenteAddNew"] as ISimpleAspect;
             var supportsDokumenteDelete = commonSection["service"]?["supportsDokumenteDelete"] as ISimpleAspect;
 
-            Debug.Assert(allowDokumenteAddNew != null);
-            Debug.Assert(allowDokumenteAddNewVersion != null);
-            Debug.Assert(supportsDokumenteDelete != null);
-
             var app = new AppSection(App.Zusammenarbeitdritte);
             app.AddDependency(new AppDependency(App.Common));
             app.AddDependency(new SimpleAspectDependency(App.Common, allowDokumenteAddNewVersion, true));
             app.AddDependency(new SimpleAspectDependency(App.Common, allowDokumenteAddNew, true));
             app.AddDependency(new SimpleAspectDependency(App.Common, supportsDokumenteDelete, true));
+
+            var appDir = commonSection["appDirectory"][App.Zusammenarbeitdritte.ToConfigurationName()] as ISimpleAspect;
+            app.AddDependency(new SimpleAspectDependency(App.Common, appDir));
+
             return app;
         }
     }

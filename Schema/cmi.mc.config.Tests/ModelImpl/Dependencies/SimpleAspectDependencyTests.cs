@@ -4,7 +4,7 @@ using cmi.mc.config.ModelImpl.Dependencies;
 using Moq;
 using NUnit.Framework;
 
-namespace cmi.mc.config.Tests
+namespace cmi.mc.config.Tests.ModelImpl.Dependencies
 {
     [TestFixture]
     public class SimpleAspectDependencyTests

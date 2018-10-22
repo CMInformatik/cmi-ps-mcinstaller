@@ -1,17 +1,14 @@
-﻿using System;
-using System.Linq;
-using cmi.mc.config.ModelComponents;
-using cmi.mc.config.ModelContract;
+﻿using cmi.mc.config.ModelContract;
 using cmi.mc.config.ModelImpl;
 using NUnit.Framework;
 
-namespace cmi.mc.config.Tests
+namespace cmi.mc.config.Tests.ModelImpl
 {
     [TestFixture]
     public class AspectTests
     {
-        private static readonly ConfigurationModel TestModel = new ConfigurationModel();
-        private static ISimpleAspect Leaf = null;
+        private static readonly DefaultSchema.DefaultSchema TestSchema = new DefaultSchema.DefaultSchema();
+        private static ISimpleAspect _leaf = null;
 
         [OneTimeSetUp]
         public static void ClassInit()
@@ -27,8 +24,8 @@ namespace cmi.mc.config.Tests
             complex3.AddAspect(complex4);
             complex4.AddAspect(complex5);
             complex5.AddAspect(simple1);
-            ((AppSection)TestModel[App.Common]).AddAspect(complex1);
-            Leaf = simple1;
+            ((AppSection)TestSchema[App.Common]).AddAspect(complex1);
+            _leaf = simple1;
         }
     }
 }

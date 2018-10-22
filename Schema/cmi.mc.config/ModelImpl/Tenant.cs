@@ -14,18 +14,18 @@ namespace cmi.mc.config.ModelImpl
     internal class Tenant : ITenant
     {
         private JProperty _configuration;
-        private readonly ConfigurationModel _model;
+        private readonly ISchema _schema;
 
         public string Name => _configuration.Name;
         public Uri ServiceBaseUrl { get; private set; }
 
-        internal Tenant(JProperty configuration, ConfigurationModel model)
+        internal Tenant(JProperty configuration, ISchema schema)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _model = model ?? throw new ArgumentNullException(nameof(model));
+            _schema = schema ?? throw new ArgumentNullException(nameof(schema));
             if (configuration.Type != JTokenType.Property)
             {
-                throw new InvalidDataException($"The tenant {configuration.Name} is not a json property.");
+                throw new InvalidConfigurationException($"The tenant {configuration.Name} is not a json property.", null, _configuration.Path);
             }
             if (string.IsNullOrWhiteSpace(configuration.Name))
             {
@@ -39,7 +39,7 @@ namespace cmi.mc.config.ModelImpl
             }
             else
             {
-                ServiceBaseUrl = _model.DefaultServiceUrl;
+                ServiceBaseUrl = _schema.DefaultServiceUrl;
             }
             if (!Has(App.Common)) RevertChangesOnFailure(() => Add(App.Common));
         }
@@ -64,28 +64,32 @@ namespace cmi.mc.config.ModelImpl
 
         public void Add(App app, bool ensureDependencies = false)
         {
-            RevertChangesOnFailure(() => _model[app].TestDependencies(this, app, ensureDependencies));
-            if (!Has(app))
+            RevertChangesOnFailure(() =>
             {
-                RevertChangesOnFailure(() =>
+                if (!Has(app))
                 {
                     _configuration.Value[app.ToConfigurationName()] = JToken.FromObject(new object());
-                    foreach (var aspect in _model[app].Traverse().OfType<ISimpleAspect>().Where(a => a.IsRequired))
+                    foreach (var aspect in _schema[app].Traverse().OfType<ISimpleAspect>().Where(a => a.IsRequired))
                     {
                         Set(app, aspect.GetAspectPath(), ensureDependencies);
                     }
+
                     // update app directory
                     try
                     {
-                        var appDirAspect = _model.GetAspect<IAspect>(App.Common, $"appDirectory.{app.ToConfigurationName()}");
+                        var appDirAspect = _schema.GetAspect<IAspect>(App.Common,
+                            $"appDirectory.{app.ToConfigurationName()}");
                         Set(App.Common, appDirAspect.GetAspectPath());
                     }
-                    catch (KeyNotFoundException)
+                    catch (KeyNotFoundException e)
                     {
                         // app does not have an appDirectory?
+                        Console.WriteLine(e);
                     }
-                });
-            }
+                }
+                // test dependencies
+                _schema[app].TestDependencies(this, app, ensureDependencies);
+            });
         }
 
         public void Remove(App app)
@@ -93,7 +97,9 @@ namespace cmi.mc.config.ModelImpl
             if (!Has(app)) return;
             RevertChangesOnFailure(() =>
             {
-                _configuration.Value[app.ToConfigurationName()].Remove();
+                var xpath = JsonConfiguration.BuildJPath(Name, app, null, Platform.Unspecified);
+                var token = _configuration.Root.SelectTokens(xpath).Single();
+                token.Parent.Remove();
                 // update app directory
                 Remove(App.Common, $"appDirectory.{app.ToConfigurationName()}");
             });
@@ -101,25 +107,25 @@ namespace cmi.mc.config.ModelImpl
 
         public bool Has(App app, string aspectPath, Platform platform = Platform.Unspecified)
         {
-            var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
+            var model = _schema.GetAspect<ISimpleAspect>(app, aspectPath);
 
             // test for platform specific property
-            var jPathPlatform = Configuration.BuildJPath(Name, app, model, platform);
+            var jPathPlatform = JsonConfiguration.BuildJPath(Name, app, model, platform);
             var token = _configuration.Root.SelectTokens(jPathPlatform).SingleOrDefault();
 
             if (token != null || platform == Platform.Unspecified) return !(token is null);
 
             // test for platform unspecific property
-            var jPathNoplatform = Configuration.BuildJPath(Name, app, model, Platform.Unspecified);
+            var jPathNoplatform = JsonConfiguration.BuildJPath(Name, app, model, Platform.Unspecified);
             token = _configuration.Root.SelectTokens(jPathNoplatform).SingleOrDefault();
             return !(token is null);
         }
 
         public void Remove(App app, string aspectPath, Platform platform)
         {
-            var model = _model.GetAspect<IAspect>(app, aspectPath);
+            var model = _schema.GetAspect<IAspect>(app, aspectPath);
             if (!Has(app)) return;
-            var xpath = Configuration.BuildJPath(Name, app, model, platform);
+            var xpath = JsonConfiguration.BuildJPath(Name, app, model, platform);
             var token = _configuration.Root.SelectTokens(xpath).SingleOrDefault();
             RevertChangesOnFailure(() => token?.Parent?.Remove());
         }
@@ -137,9 +143,9 @@ namespace cmi.mc.config.ModelImpl
 
         public object Get(App app, string aspectPath, Platform platform = Platform.Unspecified)
         {
-            var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
+            var model = _schema.GetAspect<ISimpleAspect>(app, aspectPath);
             if (!Has(app)) return null;
-            var xpath = Configuration.BuildJPath(Name, app, model, platform);
+            var xpath = JsonConfiguration.BuildJPath(Name, app, model, platform);
             var token = _configuration.Root.SelectTokens(xpath).SingleOrDefault();
             switch (token)
             {
@@ -166,7 +172,7 @@ namespace cmi.mc.config.ModelImpl
         /// <param name="ensureDependencies">Set dependencies the required values.</param>
         public void Set(App app, string aspectPath, bool ensureDependencies = false, Platform platform = Platform.Unspecified)
         {
-            var model = _model.GetAspect<IAspect>(app, aspectPath);
+            var model = _schema.GetAspect<IAspect>(app, aspectPath);
             switch (model)
             {
                 case ISimpleAspect simple:
@@ -190,7 +196,7 @@ namespace cmi.mc.config.ModelImpl
 
         public void Set(App app, string aspectPath, object value, bool ensureDependencies = false, Platform platform = Platform.Unspecified)
         {
-            var model = _model.GetAspect<ISimpleAspect>(app, aspectPath);
+            var model = _schema.GetAspect<ISimpleAspect>(app, aspectPath);
             RevertChangesOnFailure(() => SetPropertyInternal(app, model, value, ensureDependencies, platform));
         }
 
@@ -198,17 +204,15 @@ namespace cmi.mc.config.ModelImpl
         {
             Debug.Assert(aspect != null);
             // is app enabled
-            if (!Has(app)) throw new InvalidOperationException($"RequiredApp {app.ToString()} is not enabled for tenant {Name}");
+            if (!Has(app)) throw new InvalidOperationException($"Required app {app.ToString()} is not enabled for tenant {Name}");
             // test value
             if (aspect is ISimpleAspect simpleAspect) simpleAspect.TestValue(value, this, platform);
-            // test dependencies
-            aspect.TestDependencies(this, app, ensureDependencies);
 
             JProperty parentProperty;
             // get parent property
             if (aspect.Parent != null)
             {
-                var xpath = Configuration.BuildJPath(Name, app, aspect.Parent, Platform.Unspecified);
+                var xpath = JsonConfiguration.BuildJPath(Name, app, aspect.Parent, Platform.Unspecified);
                 // is parent present?
                 if (_configuration.Root.SelectTokens(xpath).SingleOrDefault() == null)
                 {
@@ -229,6 +233,9 @@ namespace cmi.mc.config.ModelImpl
 
             // set default cca
             if (aspect is IComplexAspect ca) parentProperty.GetChildProperty(ca).SetDefaultCCa(ca);
+
+            // test dependencies
+            aspect.TestDependencies(this, app, ensureDependencies);
         }
 
         private static void SetPropertyValue(JProperty parentProperty, IAspect aspect, object value,
@@ -317,7 +324,7 @@ namespace cmi.mc.config.ModelImpl
                     ValidateInternal(child, app, Platform.Unspecified, string.Empty, axVersion, ref problems);
                 }
                 // required aspects must be present
-                foreach (var aspect in _model[app].Traverse().OfType<ISimpleAspect>().Where(a => a.IsRequired))
+                foreach (var aspect in _schema[app].Traverse().OfType<ISimpleAspect>().Where(a => a.IsRequired))
                 {
                     if (!Has(app, aspect.GetAspectPath()))
                     {
@@ -425,7 +432,7 @@ namespace cmi.mc.config.ModelImpl
                 IAspect model;
                 try
                 {
-                    model = _model.GetAspect(app, aspectPath);
+                    model = _schema.GetAspect(app, aspectPath);
                 }
                 catch (KeyNotFoundException e)
                 {
@@ -434,7 +441,7 @@ namespace cmi.mc.config.ModelImpl
                     foreach (var otherApp in McSymbols.Apps)
                     {
                         if (otherApp == app) continue;
-                        if (_model.TryGetAspect(otherApp, aspectPath) != null)
+                        if (_schema.TryGetAspect(otherApp, aspectPath) != null)
                         {
                             throw new CValException($"{aspectPath} is not expected to be configured in app {app}. Move to {otherApp}.", null, config.Path, e);
                         }
@@ -443,7 +450,7 @@ namespace cmi.mc.config.ModelImpl
                 }
 
                 Debug.Assert(aspectPath != null);
-                Debug.Assert(model != null, $"{nameof(_model.GetAspect)} should throw if aspect can not be found");
+                Debug.Assert(model != null, $"{nameof(_schema.GetAspect)} should throw if aspect can not be found");
 
                 switch (model)
                 {

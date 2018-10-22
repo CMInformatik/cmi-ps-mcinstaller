@@ -17,7 +17,7 @@ namespace cmi.mc.config.ModelImpl.Dependencies
             Debug.Assert(tenant != null);
             if (!tenant.Has(_requiredApp))
             {
-                throw new AspectDependencyNotFulfilledException($"{_requiredApp} needs to be enabled for the requested configuration setting.");
+                throw new AspectDependencyNotFulfilledException(app, $"{_requiredApp} needs to be enabled for the requested configuration setting.");
             }
         }
 

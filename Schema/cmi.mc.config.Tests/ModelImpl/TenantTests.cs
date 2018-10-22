@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using cmi.mc.config.ModelComponents;
 using cmi.mc.config.ModelContract;
 using cmi.mc.config.ModelImpl;
 using FluentValidation;
@@ -10,12 +9,12 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace cmi.mc.config.Tests
+namespace cmi.mc.config.Tests.ModelImpl
 {
     [TestFixture]
     public class TenantTests
     {
-        private static readonly ConfigurationModel TestModel = new ConfigurationModel();
+        private static readonly DefaultSchema.DefaultSchema TestSchema = new DefaultSchema.DefaultSchema();
         private static Mock<IValidator<string>> _validator;
 
         [OneTimeSetUp]
@@ -40,31 +39,31 @@ namespace cmi.mc.config.Tests
                 new SimpleAspect<string[]>("stringArray", new []{"1", "2"})
             );
 
-            ((AppSection)TestModel[App.Common]).AddAspect(complex1, complex3);
-            ((AppSection)TestModel[App.Dossierbrowser]).AddAspect(complex2);
+            ((AppSection)TestSchema[App.Common]).AddAspect(complex1, complex3);
+            ((AppSection)TestSchema[App.Dossierbrowser]).AddAspect(complex2);
         }
 
         #region service base url
         [Test]
         public void Should_UseUrlFromConfig_When_ServerPropertyIsSet()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{ \"api\": { \"server\": \"https://my.service.ch:6000/mobileclients\"}}}}}", TestModel);            
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{ \"api\": { \"server\": \"https://my.service.ch:6000/mobileclients\"}}}}}", TestSchema);            
             Assert.AreEqual("https://my.service.ch:6000/", c["tenant1"].ServiceBaseUrl.ToString());
         }
 
         [Test]
         public void Should_UseKnownDefaultUrl_When_ServerPropertyIsNotSet()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{ \"api\": {}}}}}", TestModel);
-            Assert.AreEqual(TestModel.DefaultServiceUrl, c["tenant1"].ServiceBaseUrl);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{ \"api\": {}}}}}", TestSchema);
+            Assert.AreEqual(TestSchema.DefaultServiceUrl, c["tenant1"].ServiceBaseUrl);
         }
 
         [Test]
         public void Should_EnablesCommonApp_When_IsNotPresent()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": {}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": {}}}", TestSchema);
             Assert.That(c["tenant1"].Has(App.Common), Is.True);
-            Assert.That(c["tenant1"].Get(App.Common, "api.server").ToString(), Is.EqualTo($"{TestModel.DefaultServiceUrl}mobileclients"));
+            Assert.That(c["tenant1"].Get(App.Common, "api.server").ToString(), Is.EqualTo($"{TestSchema.DefaultServiceUrl}mobileclients"));
             Assert.That(c["tenant1"].Has(App.Common), Is.True);
         }
 
@@ -74,7 +73,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_RejectValue_When_ValueHasWrongType()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{}}}}", TestSchema);
             void D() => c["tenant1"].Set(App.Common, "complex1.simple1", new int());
             Assert.Throws(typeof(ValueValidationException), D);
         }
@@ -85,7 +84,7 @@ namespace cmi.mc.config.Tests
             int calls = 0;
             _validator.Setup(v => v.Validate(It.IsAny<object>())).Callback(()=> calls++);
 
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{}}}}", TestSchema);
             c["tenant1"].Set(App.Common, "complex1.simple1", "some string");
             Assert.That(calls, Is.EqualTo(1));
         }
@@ -93,7 +92,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_Throw_When_AppIsNotEnabled()
         {
-            var c = Configuration.ReadFromString("{ \"tenants\":{\"tenant1\": { \"common\":{}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{ \"tenants\":{\"tenant1\": { \"common\":{}}}}", TestSchema);
             void D() => c["tenant1"].Set(App.Dossierbrowser, "complex2.simple3", true);
             Assert.Throws(typeof(InvalidOperationException), D);
         }
@@ -101,7 +100,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_Throw_When_AspectPathIsInvalid()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}}", TestSchema);
             void D() => c["tenant1"].Set(App.Dossierbrowser, "complex2.invalid3", "some string");
             Assert.Throws(typeof(KeyNotFoundException), D);
         }
@@ -109,7 +108,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_ReturnPropertyValue_When_PropertyWasSetBefore()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}}", TestSchema);
             c["tenant1"].Set(App.Dossierbrowser, "complex2.simple3", "some string");
             var result = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3");
             var result2 = c["tenant1"].Get<string>(App.Dossierbrowser, "complex2.simple3");
@@ -121,7 +120,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_ReturnPropertyValue_When_OverrideExistingValue()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"simple3\": \"old\" }}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"simple3\": \"old\" }}}}}", TestSchema);
             c["tenant1"].Set(App.Dossierbrowser, "complex2.simple3", "new");
             var result = c["tenant1"].Get<string>(App.Dossierbrowser, "complex2.simple3");
             Assert.AreEqual("new", result);
@@ -130,7 +129,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_SetDefaultCca_When_NotCCaIsSet()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}}", TestSchema);
             c["tenant1"].Set(App.Dossierbrowser, "complex2.simple3", "some string");
             var cca = (JValue)JObject.Parse(c.ToString()).SelectTokens("$.tenants.tenant1.dossierbrowser.complex2._extend").Single();
             Assert.IsTrue(((bool)cca.Value));
@@ -139,7 +138,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_DoesNotChangeCca_When_CCaIsSet()
         {
-            var c = Configuration.ReadFromString(@"{
+            var c = JsonConfiguration.ReadFromString(@"{
 	            ""tenants"": {
 		            ""tenant1"": {
 			            ""common"": {},
@@ -150,7 +149,7 @@ namespace cmi.mc.config.Tests
 			            }
 		            }
 	            }
-            }", TestModel);
+            }", TestSchema);
             c["tenant1"].Set(App.Dossierbrowser, "complex2.simple3", "some string");
 
             var o = JObject.Parse(c.ToString());
@@ -164,7 +163,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_SetPropertyPlatformSpecific_When_PlatformIsSpecificed()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{}}}}", TestSchema);
             c["tenant1"].Set(App.Dossierbrowser, "complex2.simple3", "some string", false, Platform.App);
             var cca = (JValue)JObject.Parse(c.ToString()).SelectTokens("$.tenants.tenant1.dossierbrowser.complex2.app.simple3").Single();
             Assert.That(((string)cca.Value), Is.EqualTo("some string"));
@@ -173,7 +172,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_SetPropertyPlatformUnspecific_When_PlatformIsNotSpecificed()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"app\": { \"simple3\": \"a\" } }}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"app\": { \"simple3\": \"a\" } }}}}}", TestSchema);
             c["tenant1"].Set(App.Dossierbrowser, "complex2.simple3", "some string", false, Platform.Unspecified);
             var val = (JValue)JObject.Parse(c.ToString()).SelectTokens("$.tenants.tenant1.dossierbrowser.complex2.simple3").Single();
             Assert.That(((string)val.Value), Is.EqualTo("some string"));
@@ -182,7 +181,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_NotSetPropertyPlatformUnspecific_When_UnspecificValueIsSame()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"app\": { \"simple3\": \"b\" }, \"simple3\": \"a\" }}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"app\": { \"simple3\": \"b\" }, \"simple3\": \"a\" }}}}}", TestSchema);
             c["tenant1"].Set(App.Dossierbrowser, "complex2.simple3", "a", false, Platform.App);
             var val1 = (JValue)JObject.Parse(c.ToString()).SelectTokens("$.tenants.tenant1.dossierbrowser.complex2.simple3").Single();
             var val2 = JObject.Parse(c.ToString()).SelectTokens("$.tenants.tenant1.dossierbrowser.complex2.app.simple3").SingleOrDefault();
@@ -193,7 +192,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_RemovePlatformUnspecific_When_AllPlatformHaveSameValue()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"app\": { \"simple3\": \"a\" } }}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"app\": { \"simple3\": \"a\" } }}}}}", TestSchema);
             c["tenant1"].Set(App.Dossierbrowser, "complex2.simple3", "a", false, Platform.Web);
             var cca = (JValue)JObject.Parse(c.ToString()).SelectTokens("$.tenants.tenant1.dossierbrowser.complex2.simple3").Single();
             Assert.That(((string)cca.Value), Is.EqualTo("a"));
@@ -221,7 +220,7 @@ namespace cmi.mc.config.Tests
 	            }}
             }";
 
-            var c = Configuration.ReadFromString(json, TestModel);
+            var c = JsonConfiguration.ReadFromString(json, TestSchema);
             var appVal =  c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.App);
             var webVal = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.Web);
             var unspecVal = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.Unspecified);
@@ -244,9 +243,9 @@ namespace cmi.mc.config.Tests
 	            }}
             }";
 
-            var c = Configuration.ReadFromString(json, TestModel);
+            var c = JsonConfiguration.ReadFromString(json, TestSchema);
 
-            foreach (var aspect in TestModel[App.Common]["complex3"].Traverse().OfType<ISimpleAspect>())
+            foreach (var aspect in TestSchema[App.Common]["complex3"].Traverse().OfType<ISimpleAspect>())
             {
                 c["tenant1"].Set(App.Common, aspect.GetAspectPath());
                 var value = c["tenant1"].Get(App.Common, aspect.GetAspectPath());
@@ -262,7 +261,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_ReturnTrue_When_RequestedPlatformSpecificPropertyIsSet()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"app\": { \"simple3\": \"a\" } } }}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"app\": { \"simple3\": \"a\" } } }}}}", TestSchema);
             var result = c["tenant1"].Has(App.Dossierbrowser, "complex2.simple3", Platform.App);
             Assert.That(result, Is.True);
         }
@@ -270,7 +269,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_ReturnTrue_When_UnspecificPlatformPropertyIsSetAndSpecificRequested()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"simple3\": \"a\" }}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"simple3\": \"a\" }}}}}", TestSchema);
             var result = c["tenant1"].Has(App.Dossierbrowser, "complex2.simple3", Platform.App);
             Assert.That(result, Is.True);
         }
@@ -278,7 +277,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_ReturnTrue_When_UnspecificPlatformPropertyIsSet()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"simple3\": \"a\" }}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"simple3\": \"a\" }}}}}", TestSchema);
             var result = c["tenant1"].Has(App.Dossierbrowser, "complex2.simple3");
             Assert.That(result, Is.True);
         }
@@ -286,7 +285,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_ReturnFalse_When_PropertyIsNotSet()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { }}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { }}}}}", TestSchema);
             var result = c["tenant1"].Has(App.Dossierbrowser, "complex2.simple3");
             Assert.That(result, Is.False);
         }
@@ -294,7 +293,7 @@ namespace cmi.mc.config.Tests
         [Test]
         public void Should_ReturnTrue_When_SpecificPlatformPropertyIsSetAndUnspecificRequested()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"app\": { \"simple3\": \"a\" }}}}}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{ \"tenant1\": { \"common\":{},  \"dossierbrowser\":{ \"complex2\": { \"app\": { \"simple3\": \"a\" }}}}}}", TestSchema);
             var result = c["tenant1"].Has(App.Dossierbrowser, "complex2.simple3");
             Assert.That(result, Is.False);
         }
@@ -328,7 +327,7 @@ namespace cmi.mc.config.Tests
 
             foreach (var pl in (Platform[])Enum.GetValues(typeof(Platform)))
             {
-                var c = Configuration.ReadFromString(json, TestModel);
+                var c = JsonConfiguration.ReadFromString(json, TestSchema);
                 c["tenant1"].Remove(App.Dossierbrowser, "complex2.simple3", pl);
 
                 foreach(var pl2 in (Platform[])Enum.GetValues(typeof(Platform)))
@@ -362,7 +361,7 @@ namespace cmi.mc.config.Tests
                 }
             }";
 
-            var c = Configuration.ReadFromString(json, TestModel);
+            var c = JsonConfiguration.ReadFromString(json, TestSchema);
             c["tenant1"].Remove(App.Dossierbrowser, "complex2.simple3", Platform.Unspecified);
 
             var r1 = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.Unspecified);
@@ -396,7 +395,7 @@ namespace cmi.mc.config.Tests
 	            }}
             }";
 
-            var c = Configuration.ReadFromString(json, TestModel);
+            var c = JsonConfiguration.ReadFromString(json, TestSchema);
             c["tenant1"].Remove(App.Dossierbrowser, "complex2.simple3");
 
             var r1 = c["tenant1"].Get(App.Dossierbrowser, "complex2.simple3", Platform.Unspecified);
@@ -430,7 +429,7 @@ namespace cmi.mc.config.Tests
 	            }}
             }";
 
-            var c = Configuration.ReadFromString(json, TestModel);
+            var c = JsonConfiguration.ReadFromString(json, TestSchema);
             c["tenant1"].Remove(App.Dossierbrowser, "complex2");
 
             var complex2 = JObject.Parse(c.ToString()).SelectTokens("$.tenants.tenant1.dossierbrowser.complex2").SingleOrDefault();
@@ -458,7 +457,7 @@ namespace cmi.mc.config.Tests
                 }
             }";
 
-            var c = Configuration.ReadFromString(json, TestModel);
+            var c = JsonConfiguration.ReadFromString(json, TestSchema);
             void D() => c["tenant1"].Set(App.Sitzungsvorbereitung, "service.allowDokumenteAnnotations", true, false);
 
             Assert.Throws(typeof(AspectDependencyNotFulfilledException), D);
@@ -479,7 +478,7 @@ namespace cmi.mc.config.Tests
                 }
             }";
 
-            var c = Configuration.ReadFromString(json, TestModel);
+            var c = JsonConfiguration.ReadFromString(json, TestSchema);
             c["tenant1"].Set(App.Sitzungsvorbereitung, "service.allowDokumenteAnnotations", true, true);
 
             Assert.That(c["tenant1"].Get(App.Sitzungsvorbereitung, "service.allowDokumenteAnnotations"), Is.True);
@@ -493,25 +492,30 @@ namespace cmi.mc.config.Tests
         [Test]
         public void TestValidation()
         {
-            var model = new ConfigurationModel(new Uri("http://mobileclients.webserver.ch"));
+            var model = new DefaultSchema.DefaultSchema(new Uri("http://mobileclients.webserver.ch"));
             var config = @"
 {""tenants"":{""schwerzenwil"":{""common"":{""languages"":{""supports"":[""de""],""default"":""de""},""api"":{""server"":""http://mobileclients.webserver.ch/mobileclients"",""public"":""/proxy/schwerzenwilpub"",""private"":""/proxy/schwerzenwilpri""},""account"":{""_private"":true,""changePassword"":true},""security"":{""web"":{""allowRememberMe"":false,""defaultRememberMe"":false},""offlineData"":{""_private"":true,""app"":{""allow"":true}},""pinCode"":{""_private"":true,""lockTimeout"":15,""app"":{""require"":true}}},""service"":{""_private"":true,""supportsPrivate"":true,""supportsSaveSettings"":true,""allowDokumenteOpenExternal"":true},""ui"":{""_private"":true,""controls"":{""buttonSet"":true}},""appDirectory"":{""dossierbrowser"":{""web"":""http://mobileclients.webserver.ch/dossierbrowser/schwerzenwil/"",""app"":""cmidossierbrowser://"",""dossierDetail"":""/Abstr/{GUID}""},""sitzungsvorbereitung"":{""web"":""http://mobileclients.webserver.ch/sitzungsvorbereitung/schwerzenwil/"",""app"":""cmisitzungsvorbereitung://"",""sitzungDetail"":""/{Gremium}/{Jahr}/{GUID}"",""traktandumDetail"":""/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}""},""zusammenarbeitdritte"":{""web"":""http://mobileclients.webserver.ch/zusammenarbeitdritte/schwerzenwil/"",""aktivitaetDetail"":""/Aktivitaet/{GUID}""}}},""dossierbrowser"":{},""sitzungsvorbereitung"":{""service"":{""_extend"":true,""allowDokumenteAddNewVersion"":true,""allowDokumenteAddNew"":true,""allowDokumenteDelete"":true,""allowDokumenteAnnotations"":false,""supportsPersoenlicheDokumente"":true,""supportsFreigabe"":true,""supportsWortbegehren"":true,""supportsLatestHistory"":true,""supportsLatestHistoryMail"":true,""supportsGesamtPdf"":false},""ui"":{""_extend"":true,""pdf"":{""editor"":""pdftools"",""editorMaxOpenCount"":1,""app"":{""inTabs"":true},""web"":{""inTabs"":true}}}},""zusammenarbeitdritte"":{""service"":{""_extend"":true,""allowDokumenteAddNewVersion"":true,""allowDokumenteAddNew"":true,""allowDokumenteDelete"":true}}},""musterau"":{""common"":{""languages"":{""supports"":[""de""],""default"":""de""},""api"":{""server"":""http://mobileclients.webserver.ch/mobileclients"",""public"":""/proxy/musteraupub"",""private"":""/proxy/musteraupri""},""account"":{""_private"":true,""changePassword"":true},""security"":{""offlineData"":{""_private"":true,""app"":{""allow"":true}},""pinCode"":{""_private"":true,""lockTimeout"":15,""app"":{""require"":true}}},""service"":{""_private"":true,""supportsPrivate"":true,""supportsSaveSettings"":true,""allowDokumenteOpenExternal"":true},""ui"":{""_private"":true,""controls"":{""buttonSet"":true}},""appDirectory"":{""dossierbrowser"":{""web"":""http://mobileclients.webserver.ch/dossierbrowser/musterau/"",""app"":""cmidossierbrowser://"",""dossierDetail"":""/Abstr/{GUID}""},""sitzungsvorbereitung"":{""web"":""http://mobileclients.webserver.ch/sitzungsvorbereitung/musterau/"",""app"":""cmisitzungsvorbereitung://"",""sitzungDetail"":""/{Gremium}/{Jahr}/{GUID}"",""traktandumDetail"":""/{Gremium}/{Jahr}/{GUID}/T/{TraktandumGUID}""},""zusammenarbeitdritte"":{""web"":""http://mobileclients.webserver.ch/zusammenarbeitdritte/musterau/"",""aktivitaetDetail"":""/Aktivitaet/{GUID}""}}},""dossierbrowser"":{},""sitzungsvorbereitung"":{""service"":{""_extend"":true,""allowDokumenteAddNewVersion"":true,""allowDokumenteAddNew"":true,""allowDokumenteDelete"":true,""allowDokumenteAnnotations"":false,""supportsPersoenlicheDokumente"":true,""supportsFreigabe"":true,""supportsWortbegehren"":true,""supportsLatestHistory"":true,""supportsLatestHistoryMail"":true,""supportsGesamtPdf"":false},""ui"":{""_extend"":true,""pdf"":{""editor"":""pdftools"",""editorMaxOpenCount"":1,""app"":{""inTabs"":true},""web"":{""inTabs"":true}}}},""zusammenarbeitdritte"":{""service"":{""_extend"":true,""allowDokumenteAddNewVersion"":true,""allowDokumenteAddNew"":true,""allowDokumenteDelete"":true}}}}}
             ";
 
-            var c = Configuration.ReadFromString(config, model);
+            var c = JsonConfiguration.ReadFromString(config, model);
             c["schwerzenwil"].Validate(AxSupport.R16_1);
         }
 
         #endregion
 
         [Test]
-        public void Should_UpdateAppDirectory_When_EnabledApp()
+        public void Should_UpdateAppDirectory_When_AddRemoceApp()
         {
-            var c = Configuration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{} }}}", TestModel);
+            var c = JsonConfiguration.ReadFromString("{\"tenants\":{\"tenant1\": { \"common\":{} }}}", TestSchema);
             c["tenant1"].Add(App.Dossierbrowser);
 
             var o = JObject.Parse(c.ToString());
             Assert.That(()=> o.SelectTokens("$.tenants.tenant1.common.appDirectory.dossierbrowser").Single(), Is.Not.Null);
+
+            c["tenant1"].Remove(App.Dossierbrowser);
+
+            var o2 = JObject.Parse(c.ToString());
+            Assert.That(() => o2.SelectTokens("$.tenants.tenant1.common.appDirectory.dossierbrowser").SingleOrDefault(), Is.Null);
         }
     }
 }

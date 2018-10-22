@@ -1,16 +1,11 @@
-﻿using NUnit.Framework;
-using cmi.mc.config.ModelComponents;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using cmi.mc.config.ModelContract;
 using cmi.mc.config.ModelImpl;
 using Moq;
 using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 
-namespace cmi.mc.config.ModelComponents.Tests
+namespace cmi.mc.config.Tests.ModelImpl
 {
     [TestFixture()]
     public class AppDirAspectTests

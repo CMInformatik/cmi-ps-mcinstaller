@@ -3,9 +3,9 @@ using cmi.mc.config.ModelContract;
 using cmi.mc.config.ModelImpl;
 using cmi.mc.config.ModelImpl.Dependencies;
 
-namespace cmi.mc.config.McModel
+namespace cmi.mc.config.DefaultSchema
 {
-    internal static class SvModel
+    internal static class SvSchema
     {
         public static AppSection GetModel(AppSection commonSection)
         {
@@ -42,6 +42,10 @@ namespace cmi.mc.config.McModel
 
             app.AddAspect(service);
             app.AddDependency(new AppDependency(App.Common));
+
+            var appDir = commonSection["appDirectory"][App.Sitzungsvorbereitung.ToConfigurationName()] as ISimpleAspect;
+            app.AddDependency(new SimpleAspectDependency(App.Common, appDir));
+
             return app;
         }
     }

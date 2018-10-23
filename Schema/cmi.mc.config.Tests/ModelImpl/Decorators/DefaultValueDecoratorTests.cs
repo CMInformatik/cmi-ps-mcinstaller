@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using cmi.mc.config.ModelContract;
 using cmi.mc.config.ModelImpl.Decorators;
 using Moq;
@@ -14,6 +15,7 @@ namespace cmi.mc.config.Tests.ModelImpl.Decorators
             var aspect = new Mock<ISimpleAspect>();
             aspect.Setup(m => m.GetAspectPath()).Returns("mock");
             aspect.Setup(m => m.Name).Returns("mock");
+            aspect.Setup(m => m.Type).Returns(typeof(string));
             return aspect;
         }
 
@@ -75,6 +77,21 @@ namespace cmi.mc.config.Tests.ModelImpl.Decorators
             var result = decAspect.GetDefaultValue();
 
             Assert.That(result, Is.EqualTo("aspect"));
+        }
+
+        [Test]
+        public void Should_ReturnSelf_When_Traverse()
+        {
+            var aspect = GetAspectMock();
+            var decAspect = new DefaultValueDecorator(
+                aspect.Object,
+                $"a.{DefaultValueDecorator.OriginalDefaultPlaceholder}.b.{DefaultValueDecorator.TenantNamePlaceholder}.c");
+
+            var result = decAspect.Traverse();
+
+            var enumerable = result as IAspect[] ?? result.ToArray();
+            Assert.That(enumerable.Count(), Is.EqualTo(1));
+            Assert.That(enumerable.First(), Is.EqualTo(decAspect));
         }
     }
 }

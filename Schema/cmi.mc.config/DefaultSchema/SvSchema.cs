@@ -1,13 +1,14 @@
 ﻿using System;
 using cmi.mc.config.ModelContract;
 using cmi.mc.config.ModelImpl;
+using cmi.mc.config.ModelImpl.Decorators;
 using cmi.mc.config.ModelImpl.Dependencies;
 
 namespace cmi.mc.config.DefaultSchema
 {
     internal static class SvSchema
     {
-        public static AppSection GetModel(AppSection commonSection)
+        public static AppSection GetModel(AppSection commonSection, Uri defaultServiceUrl)
         {
             if (commonSection == null) throw new ArgumentNullException(nameof(commonSection));
             if (commonSection.App != App.Common) throw new ArgumentException("Is not a common app section", nameof(commonSection));
@@ -45,6 +46,13 @@ namespace cmi.mc.config.DefaultSchema
 
             var appDir = commonSection["appDirectory"][App.Sitzungsvorbereitung.ToConfigurationName()] as ISimpleAspect;
             app.AddDependency(new SimpleAspectDependency(App.Common, appDir));
+
+            var boot = new ComplexAspect("boot").AddAspect(
+                new TenantSpecificUriDecorator(
+                    new SimpleAspect<Uri>("settings",
+                        new Uri(defaultServiceUrl, $"{App.Sitzungsvorbereitung.ToConfigurationName()}/proxy/tenantnamesv")))
+            );
+            app.AddAspect(boot);
 
             return app;
         }

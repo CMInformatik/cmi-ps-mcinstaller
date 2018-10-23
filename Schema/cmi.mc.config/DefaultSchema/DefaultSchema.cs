@@ -32,9 +32,10 @@ namespace cmi.mc.config.DefaultSchema
 
             // apps with default model
             _internal.Add(App.Common, CommonSchema.GetModel(DefaultServiceUrl));
-            _internal.Add(App.Zusammenarbeitdritte, ZdSchema.GetModel(_internal[App.Common] as AppSection));
-            _internal.Add(App.Dossierbrowser, DbSchema.GetModel(_internal[App.Common] as AppSection));
-            _internal.Add(App.Sitzungsvorbereitung, SvSchema.GetModel(_internal[App.Common] as AppSection));
+            _internal.Add(App.Zusammenarbeitdritte, ZdSchema.GetModel(_internal[App.Common] as AppSection, DefaultServiceUrl));
+            _internal.Add(App.Dossierbrowser, DbSchema.GetModel(_internal[App.Common] as AppSection, DefaultServiceUrl));
+            _internal.Add(App.Sitzungsvorbereitung, SvSchema.GetModel(_internal[App.Common] as AppSection, DefaultServiceUrl));
+            _internal.Add(App.Mobileclients, McSchema.GetModel(_internal[App.Common] as AppSection, DefaultServiceUrl));
 
             // add remaining apps without model
             foreach (var appValue in System.Enum.GetValues(typeof(App)))
@@ -50,8 +51,9 @@ namespace cmi.mc.config.DefaultSchema
         public IAspect GetAspect(App app, string aspectPath)
         {
             Aspect.ThrowIfInvalidAspectPath(aspectPath);
-            var parts = aspectPath.Split('.');
             IAspect currentAspect = this[app];
+            var parts = aspectPath?.Split('.');
+            if (parts == null) return currentAspect;
             foreach (var part in parts)
             {
                 if (currentAspect is IComplexAspect)
@@ -70,7 +72,7 @@ namespace cmi.mc.config.DefaultSchema
                     throw new KeyNotFoundException($"{app} does not have a aspect path of {aspectPath}");
                 }
             }
-            return (IAspect)currentAspect;
+            return currentAspect;
         }
 
         /// <inheritdoc />

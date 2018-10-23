@@ -56,12 +56,12 @@ namespace cmi.mc.config.ModelImpl
 
         public static bool IsValidAspectPath(string aspectPath)
         {
+            if (string.IsNullOrWhiteSpace(aspectPath)) return true;
             return Regex.IsMatch(aspectPath, "^[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*$", RegexOptions.Singleline);
         }
 
         public static void ThrowIfInvalidAspectPath(string aspectPath)
-        {
-            if (string.IsNullOrWhiteSpace(aspectPath)) throw new ArgumentNullException(nameof(aspectPath));
+        {   
             if (!IsValidAspectPath(aspectPath)) throw new ArgumentException("Not a valid aspect path", nameof(aspectPath));
         }
 

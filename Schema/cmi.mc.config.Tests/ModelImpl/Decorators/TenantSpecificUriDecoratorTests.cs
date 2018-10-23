@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using cmi.mc.config.ModelContract;
 using cmi.mc.config.ModelImpl.Decorators;
 using Moq;
@@ -14,6 +15,7 @@ namespace cmi.mc.config.Tests.ModelImpl.Decorators
             var aspect = new Mock<ISimpleAspect>();
             aspect.Setup(m => m.GetAspectPath()).Returns("mock");
             aspect.Setup(m => m.Name).Returns("mock");
+            aspect.Setup(a => a.Type).Returns(typeof(Uri));
             return aspect;
         }
 
@@ -22,7 +24,6 @@ namespace cmi.mc.config.Tests.ModelImpl.Decorators
         {
             var aspect = GetAspectMock();
             aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>(), Platform.Unspecified)).Returns(new Uri("https://m.ch/myapp"));
-            aspect.Setup(a => a.Type).Returns(typeof(Uri));
 
             var decAspect = new TenantSpecificUriDecorator(aspect.Object);
 
@@ -39,7 +40,6 @@ namespace cmi.mc.config.Tests.ModelImpl.Decorators
         {
             var aspect = GetAspectMock();
             aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>(), Platform.Unspecified)).Returns(new Uri("https://m.ch/myapp/{tenant}"));
-            aspect.Setup(a => a.Type).Returns(typeof(Uri));
 
             var decAspect = new TenantSpecificUriDecorator(aspect.Object, "{tenant}");
 
@@ -49,6 +49,19 @@ namespace cmi.mc.config.Tests.ModelImpl.Decorators
             var result = decAspect.GetDefaultValue(tenant.Object);
 
             Assert.That(result.ToString(), Is.EqualTo("http://c.c/myapp/mytenant"));
+        }
+
+        [Test]
+        public void Should_ReturnSelf_When_Traverse()
+        {
+            var aspect = GetAspectMock();
+            var decAspect = new TenantSpecificUriDecorator(aspect.Object,"{tenant}");
+
+            var result = decAspect.Traverse();
+
+            var enumerable = result as IAspect[] ?? result.ToArray();
+            Assert.That(enumerable.Count(), Is.EqualTo(1));
+            Assert.That(enumerable.First(), Is.EqualTo(decAspect));
         }
     }
 }

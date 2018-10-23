@@ -18,9 +18,10 @@ namespace cmi.mc.config.Extensions
         public static void TestDependencies(this IAspect aspect, ITenant tenant, App app, bool ensureDependencies = false)
         {
             Debug.Assert(aspect != null);
-            Debug.Assert(tenant != null);
+            Debug.Assert(tenant != null);        
 
             if(!aspect.Dependencies.Any()) return;
+            Console.WriteLine($"Test dependencies for {aspect.GetAspectPath()}");
 
             var exceptions = new List<Exception>();
             foreach (var dep in aspect.Dependencies)

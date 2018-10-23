@@ -38,6 +38,11 @@ namespace cmi.mc.config.ModelImpl.Decorators
             return _tenantPlaceholder != null ? new Uri(tenantSpecific.ToString().Replace(_tenantPlaceholder, tenant.Name)) : tenantSpecific;
         }
 
+        public IEnumerable<IAspect> Traverse()
+        {
+            yield return this;
+        }
+
         #region unchanged behavior
         public string Name => _cap.Name;
         public IReadOnlyList<IAspectDependency> Dependencies => _cap.Dependencies;
@@ -48,7 +53,6 @@ namespace cmi.mc.config.ModelImpl.Decorators
         }
         public IAspect Root => _cap.Root;
         public string GetAspectPath() => _cap.GetAspectPath();
-        public IEnumerable<IAspect> Traverse() => _cap.Traverse();
         public IAspect this[string name] => _cap[name];
         public bool IsRequired
         {

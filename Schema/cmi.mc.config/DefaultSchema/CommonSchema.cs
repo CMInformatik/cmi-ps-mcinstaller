@@ -110,7 +110,7 @@ namespace cmi.mc.config.DefaultSchema
 
             var security = new ComplexAspect("security");
 
-            var pinCode = new ComplexAspect("PinCode", ConfigControlAttribute.Private);
+            var pinCode = new ComplexAspect("pinCode", ConfigControlAttribute.Private);
             // Abhaenigkeiten zwischen required und optional?
             pinCode.AddAspect(new SimpleAspect<bool>("required", false));
             pinCode.AddAspect(new SimpleAspect<bool>("optional", false));

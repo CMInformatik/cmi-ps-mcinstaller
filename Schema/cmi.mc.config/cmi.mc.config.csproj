@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DefaultSchema\McSchema.cs" />
     <Compile Include="Extensions\JPropertyCcaExtensions.cs" />
     <Compile Include="Extensions\IAspectExtensions.cs" />
     <Compile Include="ISchema.cs" />

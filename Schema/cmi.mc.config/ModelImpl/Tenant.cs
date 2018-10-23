@@ -169,29 +169,18 @@ namespace cmi.mc.config.ModelImpl
         /// </summary>
         /// <param name="app">The app of the property.</param>
         /// <param name="aspectPath">Path of the property.</param>
-        /// <param name="ensureDependencies">Set dependencies the required values.</param>
+        /// <param name="ensureDependencies">Set dependencies to the required values.</param>
         public void Set(App app, string aspectPath, bool ensureDependencies = false, Platform platform = Platform.Unspecified)
         {
             var model = _schema.GetAspect<IAspect>(app, aspectPath);
-            switch (model)
+            void TraverseAndSetDefault()
             {
-                case ISimpleAspect simple:
-                    var defaultValue = simple.GetDefaultValue(this, platform);
-                    RevertChangesOnFailure(() => SetPropertyInternal(app, model, defaultValue, ensureDependencies, platform));
-                    break;
-                case IComplexAspect complex:
-                    void Action()
-                    {
-                        foreach (var aspect in complex.Traverse().OfType<ISimpleAspect>())
-                        {
-                            SetPropertyInternal(app, aspect, aspect.GetDefaultValue(this, platform), ensureDependencies, platform);
-                        }
-                    }
-                    RevertChangesOnFailure(Action);
-                    break;
-                default:
-                    throw new NotSupportedException($"This method does not support aspect type {model.GetType().Name}.");
+                foreach (var aspect in model.Traverse().OfType<ISimpleAspect>())
+                {
+                    SetPropertyInternal(app, aspect, aspect.GetDefaultValue(this, platform), ensureDependencies, platform);
+                }
             }
+            RevertChangesOnFailure(TraverseAndSetDefault);
         }
 
         public void Set(App app, string aspectPath, object value, bool ensureDependencies = false, Platform platform = Platform.Unspecified)
@@ -203,6 +192,8 @@ namespace cmi.mc.config.ModelImpl
         private void SetPropertyInternal(App app, IAspect aspect, object value, bool ensureDependencies, Platform platform)
         {
             Debug.Assert(aspect != null);
+            Console.WriteLine($"Set property: app {app}, aspect {aspect?.GetAspectPath()}, value '{value}', platform {platform}");
+
             // is app enabled
             if (!Has(app)) throw new InvalidOperationException($"Required app {app.ToString()} is not enabled for tenant {Name}");
             // test value
@@ -243,6 +234,7 @@ namespace cmi.mc.config.ModelImpl
         {
             Debug.Assert(parentProperty != null);
             Debug.Assert(aspect != null);
+            Console.WriteLine($"Set property value: parent {parentProperty?.Path}, aspect {aspect?.GetAspectPath()}, value '{value}', platform {platform}");
 
             if (aspect is ISimpleAspect)
             {
@@ -297,11 +289,13 @@ namespace cmi.mc.config.ModelImpl
             if (parentProperty.HasChildProperty(aspect))
             {
                 // property is already present. Overwriting
-                parentProperty.GetChildProperty(aspect).Value = new JValue(value);
+                Console.WriteLine($"Overwrite of {aspect?.GetAspectPath()} with value '{value}'");
+                parentProperty.GetChildProperty(aspect).Value = JToken.FromObject(value);
             }
             else
             {
                 // adding new property
+                Console.WriteLine($"Adding {aspect?.GetAspectPath()} with value '{value}'");
                 parentProperty.Value[aspect.Name] = JToken.FromObject(value);
             }
         }

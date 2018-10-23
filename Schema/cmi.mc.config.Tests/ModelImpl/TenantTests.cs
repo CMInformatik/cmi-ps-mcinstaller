@@ -501,6 +501,29 @@ namespace cmi.mc.config.Tests.ModelImpl
             c["schwerzenwil"].Validate(AxSupport.R16_1);
         }
 
+        [Test]
+        public void Should_ReturnValidConfiguration_When_CreateNewConfigurationWithDefaults()
+        {
+            var model = new DefaultSchema.DefaultSchema(new Uri("http://mobileclients.webserver.ch"));
+            var c = JsonConfiguration.New(model);
+            c.AddTenant("test");
+            c["test"].Set(App.Common, null, true);
+
+            c["test"].Add(App.Dossierbrowser, true);
+            c["test"].Set(App.Dossierbrowser, null, true);
+
+            c["test"].Add(App.Sitzungsvorbereitung, true);
+            c["test"].Set(App.Sitzungsvorbereitung, null, true);
+
+            c["test"].Add(App.Zusammenarbeitdritte, true);
+            c["test"].Set(App.Zusammenarbeitdritte, null, true);
+
+            c["test"].Add(App.Mobileclients, true);
+            c["test"].Set(App.Mobileclients, null, true);
+
+            c["test"].Validate(AxSupport.R18);
+        }
+
         #endregion
 
         [Test]

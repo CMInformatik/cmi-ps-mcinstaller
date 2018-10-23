@@ -52,8 +52,12 @@ namespace cmi.mc.config.ModelImpl.Decorators
             if (defaultValue == null && value == null) return;
             if (value == null || !value.Equals(defaultValue))
             {
-                throw new ArgumentException($"The value for this property must be '{defaultValue}'");
+                throw new ValueValidationException($"The value for {GetAspectPath()} must be '{defaultValue}'", this, value);
             }
+        }
+        public IEnumerable<IAspect> Traverse()
+        {
+            yield return this;
         }
 
         #region unchanged behavior
@@ -66,7 +70,6 @@ namespace cmi.mc.config.ModelImpl.Decorators
         }
         public IAspect Root => _cap.Root;
         public string GetAspectPath() => _cap.GetAspectPath();
-        public IEnumerable<IAspect> Traverse() => _cap.Traverse();
         public IAspect this[string name] => _cap[name];
         public bool IsRequired
         {

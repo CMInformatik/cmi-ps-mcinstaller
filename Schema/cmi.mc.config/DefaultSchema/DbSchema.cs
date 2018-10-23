@@ -1,12 +1,14 @@
-﻿using cmi.mc.config.ModelContract;
+﻿using System;
+using cmi.mc.config.ModelContract;
 using cmi.mc.config.ModelImpl;
+using cmi.mc.config.ModelImpl.Decorators;
 using cmi.mc.config.ModelImpl.Dependencies;
 
 namespace cmi.mc.config.DefaultSchema
 {
     internal static class DbSchema
     {
-        public static AppSection GetModel(AppSection commonSection)
+        public static AppSection GetModel(AppSection commonSection, Uri defaultServiceUrl)
         {
             var app = new AppSection(App.Dossierbrowser);
             var service = new ComplexAspect("service", ConfigControlAttribute.Extend);
@@ -19,6 +21,14 @@ namespace cmi.mc.config.DefaultSchema
             app.AddDependency(new AppDependency(App.Common));
             var appDir = commonSection["appDirectory"][App.Dossierbrowser.ToConfigurationName()] as ISimpleAspect;
             app.AddDependency(new SimpleAspectDependency(App.Common, appDir));
+
+            var boot = new ComplexAspect("boot").AddAspect(
+                new TenantSpecificUriDecorator(
+                    new SimpleAspect<Uri>("settings",
+                    new Uri(defaultServiceUrl, $"{App.Dossierbrowser.ToConfigurationName()}/proxy/tenantnamedb")))    
+                );
+            app.AddAspect(boot);
+
             return app;
         }
     }

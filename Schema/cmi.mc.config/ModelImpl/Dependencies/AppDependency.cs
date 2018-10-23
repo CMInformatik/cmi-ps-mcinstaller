@@ -26,7 +26,7 @@ namespace cmi.mc.config.ModelImpl.Dependencies
             Debug.Assert(tenant != null);
             if (!tenant.Has(_requiredApp))
             {
-                tenant.Add(_requiredApp);
+                tenant.Add(_requiredApp, true);
             }
         }
     }

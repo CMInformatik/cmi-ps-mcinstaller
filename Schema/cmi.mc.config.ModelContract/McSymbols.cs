@@ -5,7 +5,7 @@ using System.Linq;
 namespace cmi.mc.config.ModelContract
 {
     /// <summary>
-    ///     Helper class to deal with the symbols in mobile client configuration.
+    ///     Helper class to deal with the symbols in a mobile client configuration.
     /// </summary>
     public static class McSymbols
     {
@@ -13,6 +13,13 @@ namespace cmi.mc.config.ModelContract
         private static readonly Dictionary<string, Platform> ConfigurationNameToPlatform;
         private static readonly Dictionary<string, ConfigControlAttribute> ConfigurationNameToCca;
         private static readonly Dictionary<string, App> ConfigurationNameToApp;
+
+        private static readonly Dictionary<App, string> AppToShortname = new Dictionary<App, string>()
+        {
+            {App.Dossierbrowser, "db"},
+            {App.Sitzungsvorbereitung, "sv"},
+            {App.Zusammenarbeitdritte, "zd"}
+        };
 
         static McSymbols()
         {
@@ -122,6 +129,17 @@ namespace cmi.mc.config.ModelContract
             if (ConfigurationNameToApp.ContainsKey(configurationName)) return ConfigurationNameToApp[configurationName];
             throw new ArgumentException($"{configurationName} is not a configuration name for any {nameof(App)}",
                 nameof(configurationName));
+        }
+
+        /// <summary>
+        /// Lookups the abbreviation name of the specified app.
+        /// If the app does not have an abbreviation, the app's configuration name is returned.
+        /// </summary>
+        /// <param name="app">The app.</param>
+        /// <returns>Shortcut for <param name="app"> or the configuration name if no shortcut is known.</param></returns>
+        public static string GetAppShortcut(App app)
+        {
+            return (AppToShortname.ContainsKey(app)) ? AppToShortname[app] : app.ToConfigurationName();
         }
     }
 }

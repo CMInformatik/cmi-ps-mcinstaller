@@ -33,6 +33,7 @@ namespace cmi.mc.config.DefaultSchema
                 ));
 
             app.AddAspect(api);
+            app.AddAspect(new ComplexAspect("boot", ConfigControlAttribute.Internal).AddAspect(new SpecialBootSetting(defaultServiceUrl)));
             app.AddAspect(new DefaultValueDecorator(
                 new SimpleAspect<string>("info", "Mobile Clients"), $"Mobile Clients {DefaultValueDecorator.TenantNamePlaceholder}")
             );

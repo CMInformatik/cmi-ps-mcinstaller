@@ -76,6 +76,7 @@
     <Compile Include="DefaultSchema\DbSchema.cs" />
     <Compile Include="DefaultSchema\SvSchema.cs" />
     <Compile Include="DefaultSchema\ZdSchema.cs" />
+    <Compile Include="ModelImpl\SpecialBootSetting.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ModelImpl\SimpleAspect.cs" />
     <Compile Include="ModelImpl\Dependencies\SimpleAspectDependency.cs" />

@@ -25,7 +25,7 @@ namespace cmi.mc.config.DefaultSchema
             var boot = new ComplexAspect("boot").AddAspect(
                 new TenantSpecificUriDecorator(
                     new SimpleAspect<Uri>("settings",
-                    new Uri(defaultServiceUrl, $"{App.Dossierbrowser.ToConfigurationName()}/proxy/tenantnamedb")))    
+                    new Uri(defaultServiceUrl, $"{App.Dossierbrowser.ToConfigurationName()}/proxy/tenantname{McSymbols.GetAppShortcut(App.Dossierbrowser)}")))    
                 );
             app.AddAspect(boot);
 

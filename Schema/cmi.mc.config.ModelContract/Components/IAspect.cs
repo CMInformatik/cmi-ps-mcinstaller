@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace cmi.mc.config.ModelContract
+namespace cmi.mc.config.ModelContract.Components
 {
     /// <summary>
-    ///     An aspect of a CMI Axioma mobile client configuration.
+    ///     An aspect of a mobile client configuration.
+    ///     This is the base class of a composite.
     /// </summary>
     public interface IAspect
     {
@@ -18,7 +19,7 @@ namespace cmi.mc.config.ModelContract
         IReadOnlyList<IAspectDependency> Dependencies { get; }
 
         /// <summary>
-        ///     Parent aspect.
+        ///     The Parent of this aspect.
         /// </summary>
         IAspect Parent { get; set; }
 
@@ -30,7 +31,7 @@ namespace cmi.mc.config.ModelContract
         IAspect this[string name] { get; }
 
         /// <summary>
-        ///     Path to this aspect in the configuration area.
+        ///     JPath-like path to this aspect in the configuration area.
         /// </summary>
         /// <returns>Path in JPath-style</returns>
         string GetAspectPath();

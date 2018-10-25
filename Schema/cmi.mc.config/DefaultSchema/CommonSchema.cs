@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 using cmi.mc.config.ModelImpl;
 using cmi.mc.config.ModelImpl.Decorators;
 using FluentValidation;
@@ -12,9 +13,9 @@ namespace cmi.mc.config.DefaultSchema
     {
         private class Validator<T> : AbstractValidator<T> { }
 
-        public static AppSection GetModel(Uri defaultServiceUrl)
+        public static AppAspect GetModel(Uri defaultServiceUrl)
         {
-            var app = new AppSection(App.Common);
+            var app = new AppAspect(App.Common);
             var model = new List<IAspect>();
 
             var svDir = new AppDirAspect(App.Sitzungsvorbereitung);

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
+using cmi.mc.config.ModelContract.Exceptions;
 using FluentValidation;
 
 namespace cmi.mc.config.ModelImpl

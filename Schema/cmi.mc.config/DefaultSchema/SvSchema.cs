@@ -1,5 +1,6 @@
 ﻿using System;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 using cmi.mc.config.ModelImpl;
 using cmi.mc.config.ModelImpl.Decorators;
 using cmi.mc.config.ModelImpl.Dependencies;
@@ -8,12 +9,12 @@ namespace cmi.mc.config.DefaultSchema
 {
     internal static class SvSchema
     {
-        public static AppSection GetModel(AppSection commonSection, Uri defaultServiceUrl)
+        public static AppAspect GetModel(AppAspect commonApp, Uri defaultServiceUrl)
         {
-            if (commonSection == null) throw new ArgumentNullException(nameof(commonSection));
-            if (commonSection.App != App.Common) throw new ArgumentException("Is not a common app section", nameof(commonSection));
+            if (commonApp == null) throw new ArgumentNullException(nameof(commonApp));
+            if (commonApp.App != App.Common) throw new ArgumentException("Is not a common app aspect", nameof(commonApp));
 
-            var app = new AppSection(App.Sitzungsvorbereitung);
+            var app = new AppAspect(App.Sitzungsvorbereitung);
             var service = new ComplexAspect("service", ConfigControlAttribute.Extend);
 
             service.AddAspect(new SimpleAspect<bool>("supportsPersoenlicheDokumente", false));
@@ -23,7 +24,7 @@ namespace cmi.mc.config.DefaultSchema
 
             var saveSettingDep = new SimpleAspectDependency(
                 App.Common, 
-                commonSection["service"]["supportsSaveSettings"] as ISimpleAspect, true);
+                commonApp["service"]["supportsSaveSettings"] as ISimpleAspect, true);
             var persoenlicheDokumenteDep = new SimpleAspectDependency(
                 App.Sitzungsvorbereitung, 
                 service["supportsPersoenlicheDokumente"] as ISimpleAspect, true);
@@ -32,7 +33,7 @@ namespace cmi.mc.config.DefaultSchema
                 service["supportsFreigabe"] as ISimpleAspect, true);
             var pdfToolDep = new SimpleAspectDependency(
                 App.Common,
-                commonSection["ui"]["pdf"]["editor"] as ISimpleAspect, "pdftools");
+                commonApp["ui"]["pdf"]["editor"] as ISimpleAspect, "pdftools");
 
             service.AddAspect(new SimpleAspect<bool>("supportsLatestHistoryMail", true, AxSupport.R18).AddDependency(saveSettingDep));
             service.AddAspect(new SimpleAspect<bool>("supportsPrintOnDemand", false, AxSupport.R18));
@@ -44,7 +45,7 @@ namespace cmi.mc.config.DefaultSchema
             app.AddAspect(service);
             app.AddDependency(new AppDependency(App.Common));
 
-            var appDir = commonSection["appDirectory"][App.Sitzungsvorbereitung.ToConfigurationName()] as ISimpleAspect;
+            var appDir = commonApp["appDirectory"][App.Sitzungsvorbereitung.ToConfigurationName()] as ISimpleAspect;
             app.AddDependency(new SimpleAspectDependency(App.Common, appDir));
 
             var boot = new ComplexAspect("boot").AddAspect(

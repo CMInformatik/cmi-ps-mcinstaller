@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 
 namespace cmi.mc.config
 {

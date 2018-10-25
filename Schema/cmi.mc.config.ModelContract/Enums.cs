@@ -2,18 +2,23 @@
 
 namespace cmi.mc.config.ModelContract
 {
+    /// <inheritdoc />
     /// <summary>
     ///     Name/Symbol of the enum value in the mobile client configuration.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     internal class InConfigurationName : Attribute
     {
+        /// <param name="name">Name of the enum value in a mobile client configuration.</param>
         public InConfigurationName(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
             Name = name;
         }
 
+        /// <summary>
+        /// Name of the enum value in a mobile client configuration.
+        /// </summary>
         public string Name { get; set; }
 
         public override string ToString()
@@ -22,13 +27,28 @@ namespace cmi.mc.config.ModelContract
         }
     }
 
+    /// <summary>
+    /// Specifies the client platform in a mobile client configuration.
+    /// </summary>
     public enum Platform
     {
+        /// <summary>
+        /// The context will only apply to browsers.
+        /// </summary>
         [InConfigurationName("web")] Web,
+        /// <summary>
+        /// The context will only apply to apps (e.g. Andriod, IOS).
+        /// </summary>
         [InConfigurationName("app")] App,
+        /// <summary>
+        /// The platform is unspecified and the context will apply to any platform.
+        /// </summary>
         Unspecified
     }
 
+    /// <summary>
+    /// Specifies the application in a mobile client configuration.
+    /// </summary>
     public enum App
     {
         [InConfigurationName("common")] Common,
@@ -44,6 +64,9 @@ namespace cmi.mc.config.ModelContract
         Zusammenarbeitdritte
     }
 
+    /// <summary>
+    /// Specifies the value interpretation mode of leaf properties in a mobile client configuration.
+    /// </summary>
     public enum ConfigControlAttribute
     {
         [InConfigurationName("_extend")] Extend,
@@ -60,8 +83,17 @@ namespace cmi.mc.config.ModelContract
     /// </summary>
     public enum AxSupport
     {
+        /// <summary>
+        /// Version 16.1 and higher.
+        /// </summary>
         R16_1 = 0,
+        /// <summary>
+        /// Version 17.0 and higher.
+        /// </summary>
         R17 = 1,
+        /// <summary>
+        /// Version 18.0 and higher.
+        /// </summary>
         R18 = 2
     }
 }

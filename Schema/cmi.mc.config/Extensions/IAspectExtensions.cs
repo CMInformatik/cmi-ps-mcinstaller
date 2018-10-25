@@ -3,13 +3,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
+using cmi.mc.config.ModelContract.Exceptions;
 
 namespace cmi.mc.config.Extensions
 {
+    /// <summary>
+    /// Extension methods for <see cref="IAspect"/> or derivations of this interface.
+    /// </summary>
     internal static class IAspectExtensions
     {
         /// <summary>
-        /// Executes dependency tests for all dependencies.
+        /// Executes dependency tests for all dependencies attached to an <see cref="IAspect"/>.
         /// If no exception is thrown, all dependencies are fulfilled.
         /// </summary>
         /// <param name="ensureDependencies">If a dependency is not fulfilled, try to change the configuration to fulfill the dependency.</param>

@@ -1,6 +1,7 @@
 ﻿using System;
+using cmi.mc.config.ModelContract.Components;
 
-namespace cmi.mc.config.ModelContract
+namespace cmi.mc.config.ModelContract.Exceptions
 {
     public class InvalidConfigurationException : Exception
     {

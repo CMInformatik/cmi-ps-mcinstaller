@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using cmi.mc.config.Extensions;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Exceptions;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 

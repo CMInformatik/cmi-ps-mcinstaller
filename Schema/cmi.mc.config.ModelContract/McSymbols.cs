@@ -29,7 +29,9 @@ namespace cmi.mc.config.ModelContract
 
             ConfigurationNameToPlatform = new Dictionary<string, Platform>();
             foreach (var platform in Platforms)
+            {
                 ConfigurationNameToPlatform.Add(platform.ToConfigurationName(), platform);
+            }   
 
             ConfigurationNameToCca = new Dictionary<string, ConfigControlAttribute>();
             foreach (var cca in ConfigControlAttributes) ConfigurationNameToCca.Add(cca.ToConfigurationName(), cca);

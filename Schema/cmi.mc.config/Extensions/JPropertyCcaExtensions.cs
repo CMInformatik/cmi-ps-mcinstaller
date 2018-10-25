@@ -2,10 +2,16 @@
 using System.Diagnostics;
 using System.Linq;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
+using cmi.mc.config.ModelContract.Exceptions;
 using Newtonsoft.Json.Linq;
 
 namespace cmi.mc.config.Extensions
 {
+    /// <summary>
+    /// Extension methods for the <see cref="JProperty"/> class
+    /// which handles the <see cref="ConfigControlAttribute"/> in a mobile client configuration.
+    /// </summary>
     internal static class JPropertyCcaExtensions
     {
         /// <summary>
@@ -47,6 +53,7 @@ namespace cmi.mc.config.Extensions
         /// <summary>
         /// Verfies that the given property contains a valid <see cref="ConfigControlAttribute"/> value.
         /// </summary>
+        /// <exception cref="InvalidConfigurationException">When the <see cref="ConfigControlAttribute"/> is invalid or malformed.</exception>
         private static void VerfiyCcaPropertyValue(JProperty jProperty)
         {
             Debug.Assert(jProperty != null);

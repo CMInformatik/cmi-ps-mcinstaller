@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 using cmi.mc.config.ModelImpl;
 
 namespace cmi.mc.config.DefaultSchema
@@ -32,17 +33,17 @@ namespace cmi.mc.config.DefaultSchema
 
             // apps with default model
             _internal.Add(App.Common, CommonSchema.GetModel(DefaultServiceUrl));
-            _internal.Add(App.Zusammenarbeitdritte, ZdSchema.GetModel(_internal[App.Common] as AppSection, DefaultServiceUrl));
-            _internal.Add(App.Dossierbrowser, DbSchema.GetModel(_internal[App.Common] as AppSection, DefaultServiceUrl));
-            _internal.Add(App.Sitzungsvorbereitung, SvSchema.GetModel(_internal[App.Common] as AppSection, DefaultServiceUrl));
-            _internal.Add(App.Mobileclients, McSchema.GetModel(_internal[App.Common] as AppSection, DefaultServiceUrl));
+            _internal.Add(App.Zusammenarbeitdritte, ZdSchema.GetModel(_internal[App.Common] as AppAspect, DefaultServiceUrl));
+            _internal.Add(App.Dossierbrowser, DbSchema.GetModel(_internal[App.Common] as AppAspect, DefaultServiceUrl));
+            _internal.Add(App.Sitzungsvorbereitung, SvSchema.GetModel(_internal[App.Common] as AppAspect, DefaultServiceUrl));
+            _internal.Add(App.Mobileclients, McSchema.GetModel(_internal[App.Common] as AppAspect, DefaultServiceUrl));
 
             // add remaining apps without model
             foreach (var appValue in System.Enum.GetValues(typeof(App)))
             {
                 if (!_internal.ContainsKey((App) appValue))
                 {
-                    _internal.Add((App)appValue, new AppSection((App)appValue));
+                    _internal.Add((App)appValue, new AppAspect((App)appValue));
                 }    
             }
         }

@@ -1,9 +1,10 @@
 ﻿using System;
+using cmi.mc.config.ModelContract.Exceptions;
 
-namespace cmi.mc.config.ModelContract
+namespace cmi.mc.config.ModelContract.Components
 {
     /// <summary>
-    ///     A leaf aspect of a CMI Axioma mobile client configuration.
+    ///     A leaf node / aspect of a mobile client configuration.
     /// </summary>
     public interface ISimpleAspect : IAspect
     {

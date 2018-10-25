@@ -1,4 +1,5 @@
 ﻿using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 using cmi.mc.config.ModelImpl;
 using NUnit.Framework;
 
@@ -24,7 +25,7 @@ namespace cmi.mc.config.Tests.ModelImpl
             complex3.AddAspect(complex4);
             complex4.AddAspect(complex5);
             complex5.AddAspect(simple1);
-            ((AppSection)TestSchema[App.Common]).AddAspect(complex1);
+            ((AppAspect)TestSchema[App.Common]).AddAspect(complex1);
             _leaf = simple1;
         }
     }

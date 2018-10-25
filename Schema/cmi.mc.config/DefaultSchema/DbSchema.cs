@@ -1,5 +1,6 @@
 ﻿using System;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 using cmi.mc.config.ModelImpl;
 using cmi.mc.config.ModelImpl.Decorators;
 using cmi.mc.config.ModelImpl.Dependencies;
@@ -8,9 +9,9 @@ namespace cmi.mc.config.DefaultSchema
 {
     internal static class DbSchema
     {
-        public static AppSection GetModel(AppSection commonSection, Uri defaultServiceUrl)
+        public static AppAspect GetModel(AppAspect commonApp, Uri defaultServiceUrl)
         {
-            var app = new AppSection(App.Dossierbrowser);
+            var app = new AppAspect(App.Dossierbrowser);
             var service = new ComplexAspect("service", ConfigControlAttribute.Extend);
             service.AddAspect(new SimpleAspect<bool>("allowDokumenteCheckIn", false));
             service.AddAspect(new SimpleAspect<bool>("allowDokumenteDetails", false));
@@ -19,7 +20,7 @@ namespace cmi.mc.config.DefaultSchema
             service.AddAspect(new SimpleAspect<bool>("supportsDetailsSearch", false));
             app.AddAspect(service);
             app.AddDependency(new AppDependency(App.Common));
-            var appDir = commonSection["appDirectory"][App.Dossierbrowser.ToConfigurationName()] as ISimpleAspect;
+            var appDir = commonApp["appDirectory"][App.Dossierbrowser.ToConfigurationName()] as ISimpleAspect;
             app.AddDependency(new SimpleAspectDependency(App.Common, appDir));
 
             var boot = new ComplexAspect("boot").AddAspect(

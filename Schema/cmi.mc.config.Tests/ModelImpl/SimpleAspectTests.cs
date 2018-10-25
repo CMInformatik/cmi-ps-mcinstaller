@@ -1,4 +1,5 @@
 ﻿using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Exceptions;
 using cmi.mc.config.ModelImpl;
 using NUnit.Framework;
 

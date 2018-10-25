@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace cmi.mc.config.ModelContract
+namespace cmi.mc.config.ModelContract.Components
 {
     /// <summary>
-    ///     A intermediate part of a CMI Axioma mobile clients configuration.
+    ///     A intermediate part of a mobile clients configuration.
+    ///     This should be a non-leaf node in a tree structure.
     /// </summary>
     public interface IComplexAspect : IAspect
     {
@@ -13,7 +14,7 @@ namespace cmi.mc.config.ModelContract
         ConfigControlAttribute DefaultCca { get; }
 
         /// <summary>
-        ///     Childs of this aspect.
+        ///     Childs aspects of this aspect.
         /// </summary>
         IReadOnlyDictionary<string, IAspect> Aspects { get; }
     }

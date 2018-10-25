@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 using Moq;
 using NUnit.Framework;
 

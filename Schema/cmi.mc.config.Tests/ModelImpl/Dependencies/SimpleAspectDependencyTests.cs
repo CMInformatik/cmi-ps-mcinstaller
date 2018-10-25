@@ -1,5 +1,7 @@
 ﻿using System;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
+using cmi.mc.config.ModelContract.Exceptions;
 using cmi.mc.config.ModelImpl.Dependencies;
 using Moq;
 using NUnit.Framework;

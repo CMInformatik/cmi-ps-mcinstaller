@@ -5,9 +5,11 @@ using System.IO;
 using System.Linq;
 using cmi.mc.config.Extensions;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
+using cmi.mc.config.ModelContract.Exceptions;
 using Newtonsoft.Json.Linq;
 using Exception = System.Exception;
-using CValException = cmi.mc.config.ModelContract.ConfigurationValidationException;
+using CValException = cmi.mc.config.ModelContract.Exceptions.ConfigurationValidationException;
 
 namespace cmi.mc.config.ModelImpl
 {
@@ -95,6 +97,7 @@ namespace cmi.mc.config.ModelImpl
         public void Remove(App app)
         {
             if (!Has(app)) return;
+            if (app is App.Common) throw new InvalidOperationException($"Can not remove required app {app}");
             RevertChangesOnFailure(() =>
             {
                 var xpath = JsonConfiguration.BuildJPath(Name, app, null, Platform.Unspecified);

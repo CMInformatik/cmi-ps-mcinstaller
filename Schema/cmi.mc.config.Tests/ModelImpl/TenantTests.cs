@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
+using cmi.mc.config.ModelContract.Exceptions;
 using cmi.mc.config.ModelImpl;
 using FluentValidation;
 using FluentValidation.Results;
@@ -39,8 +41,8 @@ namespace cmi.mc.config.Tests.ModelImpl
                 new SimpleAspect<string[]>("stringArray", new []{"1", "2"})
             );
 
-            ((AppSection)TestSchema[App.Common]).AddAspect(complex1, complex3);
-            ((AppSection)TestSchema[App.Dossierbrowser]).AddAspect(complex2);
+            ((AppAspect)TestSchema[App.Common]).AddAspect(complex1, complex3);
+            ((AppAspect)TestSchema[App.Dossierbrowser]).AddAspect(complex2);
         }
 
         #region service base url

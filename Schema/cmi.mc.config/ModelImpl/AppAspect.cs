@@ -1,13 +1,14 @@
 ﻿using System;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 
 namespace cmi.mc.config.ModelImpl
 {
-    internal class AppSection : ComplexAspect
+    internal class AppAspect : ComplexAspect
     {
         public App App { get; }
 
-        public AppSection(App app) : base(app.ToConfigurationName(), ConfigControlAttribute.NotSet)
+        public AppAspect(App app) : base(app.ToConfigurationName(), ConfigControlAttribute.NotSet)
         {
             App = app;
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 
 namespace cmi.mc.config.ModelImpl
 {

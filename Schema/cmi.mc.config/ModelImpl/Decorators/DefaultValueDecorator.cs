@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
+using cmi.mc.config.ModelContract.Exceptions;
 
 namespace cmi.mc.config.ModelImpl.Decorators
 {

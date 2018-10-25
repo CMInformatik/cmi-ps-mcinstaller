@@ -7,12 +7,12 @@ namespace cmi.mc.config.DefaultSchema
 {
     internal static class McSchema
     {
-        public static AppSection GetModel(AppSection commonSection, Uri defaultServiceUrl)
+        public static AppAspect GetModel(AppAspect commonApp, Uri defaultServiceUrl)
         {
-            if (commonSection == null) throw new ArgumentNullException(nameof(commonSection));
-            if (commonSection.App != App.Common) throw new ArgumentException("Is not a common app section", nameof(commonSection));
+            if (commonApp == null) throw new ArgumentNullException(nameof(commonApp));
+            if (commonApp.App != App.Common) throw new ArgumentException("Is not a common app aspect", nameof(commonApp));
 
-            var app = new AppSection(App.Mobileclients);
+            var app = new AppAspect(App.Mobileclients);
 
             var api = new ComplexAspect("api");
             api.AddAspect(

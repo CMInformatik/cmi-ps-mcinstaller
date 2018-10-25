@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 using cmi.mc.config.ModelImpl.Decorators;
 using Moq;
 using NUnit.Framework;

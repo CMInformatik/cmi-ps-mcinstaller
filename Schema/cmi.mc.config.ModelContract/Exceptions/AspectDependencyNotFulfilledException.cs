@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace cmi.mc.config.ModelContract
+namespace cmi.mc.config.ModelContract.Exceptions
 {
     //ToDo: Add more informations/properties to exception
     //ToDo: Add doc.

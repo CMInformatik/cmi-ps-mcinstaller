@@ -1,5 +1,6 @@
 ﻿using System;
 using cmi.mc.config.ModelContract;
+using cmi.mc.config.ModelContract.Components;
 using cmi.mc.config.ModelImpl;
 using cmi.mc.config.ModelImpl.Decorators;
 using cmi.mc.config.ModelImpl.Dependencies;
@@ -8,22 +9,22 @@ namespace cmi.mc.config.DefaultSchema
 {
     internal static class ZdSchema
     {
-        public static AppSection GetModel(AppSection commonSection, Uri defaultServiceUrl)
+        public static AppAspect GetModel(AppAspect commonApp, Uri defaultServiceUrl)
         {
-            if(commonSection == null) throw new ArgumentNullException(nameof(commonSection));
-            if(commonSection.App != App.Common) throw new ArgumentException("Is not a common app section", nameof(commonSection));
+            if(commonApp == null) throw new ArgumentNullException(nameof(commonApp));
+            if(commonApp.App != App.Common) throw new ArgumentException("Is not a common app section", nameof(commonApp));
 
-            var allowDokumenteAddNewVersion = commonSection["service"]?["allowDokumenteAddNewVersion"] as ISimpleAspect;
-            var allowDokumenteAddNew = commonSection["service"]?["allowDokumenteAddNew"] as ISimpleAspect;
-            var supportsDokumenteDelete = commonSection["service"]?["supportsDokumenteDelete"] as ISimpleAspect;
+            var allowDokumenteAddNewVersion = commonApp["service"]?["allowDokumenteAddNewVersion"] as ISimpleAspect;
+            var allowDokumenteAddNew = commonApp["service"]?["allowDokumenteAddNew"] as ISimpleAspect;
+            var supportsDokumenteDelete = commonApp["service"]?["supportsDokumenteDelete"] as ISimpleAspect;
 
-            var app = new AppSection(App.Zusammenarbeitdritte);
+            var app = new AppAspect(App.Zusammenarbeitdritte);
             app.AddDependency(new AppDependency(App.Common));
             app.AddDependency(new SimpleAspectDependency(App.Common, allowDokumenteAddNewVersion, true));
             app.AddDependency(new SimpleAspectDependency(App.Common, allowDokumenteAddNew, true));
             app.AddDependency(new SimpleAspectDependency(App.Common, supportsDokumenteDelete, true));
 
-            var appDir = commonSection["appDirectory"][App.Zusammenarbeitdritte.ToConfigurationName()] as ISimpleAspect;
+            var appDir = commonApp["appDirectory"][App.Zusammenarbeitdritte.ToConfigurationName()] as ISimpleAspect;
             app.AddDependency(new SimpleAspectDependency(App.Common, appDir));
 
             var boot = new ComplexAspect("boot").AddAspect(

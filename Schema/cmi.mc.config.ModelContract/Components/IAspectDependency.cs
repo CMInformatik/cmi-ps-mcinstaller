@@ -1,4 +1,6 @@
-﻿namespace cmi.mc.config.ModelContract
+﻿using cmi.mc.config.ModelContract.Exceptions;
+
+namespace cmi.mc.config.ModelContract.Components
 {
     /// <summary>
     ///     Dependency of an aspect to other parts of the configuration.
@@ -16,6 +18,7 @@
 
         /// <summary>
         ///     Ensures that the dependency is fulfilled.
+        ///     This will change foreign configuration parts, which may lead to other side effects.
         /// </summary>
         /// <param name="tenant">Verifies the dependency tenant specific.</param>
         /// <param name="app">Verifies the dependency app specific.</param>

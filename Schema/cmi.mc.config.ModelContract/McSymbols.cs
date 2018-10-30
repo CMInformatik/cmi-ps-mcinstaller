@@ -52,6 +52,12 @@ namespace cmi.mc.config.ModelContract
         public static IList<Platform> Platforms { get; } = (Platform[]) Enum.GetValues(typeof(Platform));
 
         /// <summary>
+        ///     List of all concretely determinable platform <seealso cref="Platform" />s.
+        ///     Excludes <see cref="Platform.Unspecified"/>.
+        /// </summary>
+        public static IList<Platform> CertainPlatforms { get; } = ((Platform[])Enum.GetValues(typeof(Platform))).Where(p => p != Platform.Unspecified).ToList();
+
+        /// <summary>
         ///     List of all <seealso cref="ConfigControlAttribute" /> configuration names.
         /// </summary>
         public static IEnumerable<string> CcaNames { get; } = Enum.GetValues(typeof(ConfigControlAttribute))

@@ -59,14 +59,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DefaultSchema\McSchema.cs" />
+    <Compile Include="Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Extensions\JPropertyCcaExtensions.cs" />
     <Compile Include="Extensions\IAspectExtensions.cs" />
     <Compile Include="ISchema.cs" />
+    <Compile Include="ModelImpl\AppConfiguration.cs" />
     <Compile Include="ModelImpl\AppDirAspect.cs" />
+    <Compile Include="ModelImpl\ConfigurationManipulator.cs" />
     <Compile Include="ModelImpl\Decorators\DefaultValueDecorator.cs" />
     <Compile Include="ModelImpl\Decorators\TenantSpecificUriDecorator.cs" />
     <Compile Include="ModelImpl\Dependencies\AppDependency.cs" />
-    <Compile Include="ModelImpl\AppSection.cs" />
+    <Compile Include="ModelImpl\AppAspect.cs" />
     <Compile Include="ModelImpl\Aspect.cs" />
     <Compile Include="ModelImpl\ComplexAspect.cs" />
     <Compile Include="JsonConfiguration.cs" />

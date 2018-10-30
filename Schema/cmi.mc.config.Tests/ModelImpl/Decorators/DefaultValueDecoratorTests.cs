@@ -2,6 +2,7 @@
 using System.Linq;
 using cmi.mc.config.ModelContract;
 using cmi.mc.config.ModelContract.Components;
+using cmi.mc.config.ModelContract.Exceptions;
 using cmi.mc.config.ModelImpl.Decorators;
 using Moq;
 using NUnit.Framework;
@@ -40,7 +41,7 @@ namespace cmi.mc.config.Tests.ModelImpl.Decorators
         }
 
         [Test]
-        public void Should_FailTestValue_When_DefaultValueIsEnforcedAndDifferent()
+        public void Should_FailTest_When_DefaultValueIsEnforcedAndDifferent()
         {
             var aspect = GetAspectMock();
             aspect.Setup(a => a.GetDefaultValue(It.IsAny<ITenant>(), Platform.Unspecified)).Returns("a");
@@ -48,7 +49,7 @@ namespace cmi.mc.config.Tests.ModelImpl.Decorators
 
             var decAspect = new DefaultValueDecorator(aspect.Object,"a",true);
 
-            Assert.That(()=>{ decAspect.TestValue("b"); }, Throws.ArgumentException);
+            Assert.That(()=>{ decAspect.TestValue("b"); }, Throws.TypeOf<ValueValidationException>());
         }
 
         [Test]

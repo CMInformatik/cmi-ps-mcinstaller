@@ -55,12 +55,12 @@ namespace cmi.mc.config.Tests.ModelImpl.Dependencies
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, new object());
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns(null);
+            mock.Setup(m => m[App.Common].Get("mock", Platform.Unspecified)).Returns(null);
 
             void D1() => dep.Verify(mock.Object, App.Common);
 
             Assert.Throws(typeof(AspectDependencyNotFulfilledException), D1);
-            mock.Verify(m => m.Get(App.Common, "mock", Platform.Unspecified));
+            mock.Verify(m => m[App.Common].Get("mock", Platform.Unspecified));
         }
 
         [Test]
@@ -69,12 +69,12 @@ namespace cmi.mc.config.Tests.ModelImpl.Dependencies
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, "some string");
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns("not some string");
+            mock.Setup(m => m[App.Common].Get("mock", Platform.Unspecified)).Returns("not some string");
 
             void D1() => dep.Verify(mock.Object, App.Common);
 
             Assert.Throws(typeof(AspectDependencyNotFulfilledException), D1);
-            mock.Verify(m => m.Get(App.Common, "mock", Platform.Unspecified));
+            mock.Verify(m => m[App.Common].Get("mock", Platform.Unspecified));
         }
 
         [Test]
@@ -83,10 +83,10 @@ namespace cmi.mc.config.Tests.ModelImpl.Dependencies
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, null);
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns(null);
+            mock.Setup(m => m[App.Common].Get("mock", Platform.Unspecified)).Returns(null);
 
             dep.Verify(mock.Object, App.Common);
-            mock.Verify(m => m.Get(App.Common, "mock", Platform.Unspecified));
+            mock.Verify(m => m[App.Common].Get("mock", Platform.Unspecified));
         }
 
         [Test]
@@ -95,10 +95,10 @@ namespace cmi.mc.config.Tests.ModelImpl.Dependencies
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, "some string");
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns("some string");
+            mock.Setup(m => m[App.Common].Get("mock", Platform.Unspecified)).Returns("some string");
 
             dep.Verify(mock.Object, App.Common);
-            mock.Verify(m => m.Get(App.Common, "mock", Platform.Unspecified));
+            mock.Verify(m => m[App.Common].Get("mock", Platform.Unspecified));
         }
 
         [Test]
@@ -107,10 +107,10 @@ namespace cmi.mc.config.Tests.ModelImpl.Dependencies
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, "some string");
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns("some string");
+            mock.Setup(m => m[App.Common].Get("mock", Platform.Unspecified)).Returns("some string");
 
             dep.Ensure(mock.Object, App.Common);
-            mock.Verify(m => m.Set(It.IsAny<App>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<bool>(), Platform.Unspecified), Times.Never);
+            mock.Verify(m => m[App.Common].Set(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<bool>(), Platform.Unspecified), Times.Never);
         }
 
         [Test]
@@ -119,10 +119,10 @@ namespace cmi.mc.config.Tests.ModelImpl.Dependencies
             var aspect = GetAspectMock().Object;
             var dep = new SimpleAspectDependency(App.Common, aspect, "some string");
             var mock = new Mock<ITenant>();
-            mock.Setup(m => m.Get(App.Common, "mock", Platform.Unspecified)).Returns("not some string");
+            mock.Setup(m => m[App.Common].Get("mock", Platform.Unspecified)).Returns("not some string");
 
             dep.Ensure(mock.Object, App.Common);
-            mock.Verify(m => m.Set(App.Common, "mock", It.IsAny<object>(), true, Platform.Unspecified), Times.Once);
+            mock.Verify(m => m[App.Common].Set("mock", It.IsAny<object>(), true, Platform.Unspecified), Times.Once);
         }
     }
 }

@@ -26,6 +26,7 @@ namespace cmi.mc.config.Tests
         public void Should_ReturnInstance_When_ReadConfigurationFromFile()
         {
             var c = JsonConfiguration.ReadFromFile(GetTestDataPath("test.json"), Schema);
+            Assert.That(c, Is.Not.Null);
             Assert.IsInstanceOf(typeof(JsonConfiguration), c);
         }
 

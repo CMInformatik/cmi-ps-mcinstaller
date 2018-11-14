@@ -13,7 +13,7 @@ $accelerators::Add("SimpleAspect", "cmi.mobileclients.config.ModelContract.Compo
 $accelerators::Add("Tenant", "cmi.mobileclients.config.ModelContract.Components.ITenant")
 
 # Konfigurationsmodell laden
-Set-Variable -Name Schema -Value (New-Object 'cmi.mobileclients.config.DefaultSchema.DefaultSchema') -Option ReadOnly -Force
+Set-Variable -Name Schema -Value (New-Object 'cmi.mobileclients.config.DefaultSchema.DefaultSchema') -Option ReadOnly -Force -Scope Global
 
 # Dot-Sourcen der Modulfunktionen
 Get-ChildItem -Path $PSScriptRoot\Internal\*.ps1 -Recurse | ForEach-Object {
@@ -39,7 +39,7 @@ foreach ($app in $Schema.Keys) {
         $functions = New-FeatureProxy $app ([System.Type]($enumName))
         $functions | ForEach-Object {
             Invoke-Expression $_.Definition
-            Export-ModuleMember -Function $_.FunctionName -Verbose
+            Export-ModuleMember -Function $_.FunctionName
         } 
     }
 }

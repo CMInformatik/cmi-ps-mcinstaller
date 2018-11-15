@@ -7,8 +7,7 @@
         [JsonConfiguration]$Configuration,
 
         [parameter(Mandatory = $True, Position = 1, ValueFromPipelineByPropertyName = $True)]
-        [ValidateNotNullOrEmpty()]
-        [ValidatePattern('^[A-Za-z0-9\-_]+$')]
+        [ValidateScript({ MustBeValidTenantName $_ })]
         [String[]]$TenantName,
 
         [parameter(Mandatory = $True, Position = 2, ValueFromPipelineByPropertyName = $True)]

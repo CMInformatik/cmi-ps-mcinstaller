@@ -1,12 +1,16 @@
 ﻿function Add-App {
-    [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Medium', DefaultParameterSetName="__AllParameterSets")]
-    [OutputType([AppConfiguration])]
+    [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Medium')]
+    [OutputType([AppConfiguration], [JsonConfiguration])]
     PARAM(
-        [parameter(Mandatory = $True, Position = 0, ValueFromPipelineByPropertyName = $True)]
+        [parameter(Mandatory = $True, Position = 0, ValueFromPipelineByPropertyName = $True, ValueFromPipeline = $true, ParameterSetName="ByConfiguration")]
         [ValidateNotNull()]
         [JsonConfiguration]$Configuration,
 
-        [parameter(Mandatory = $True, Position = 1, ValueFromPipelineByPropertyName = $True)]
+        [parameter(Mandatory = $True, Position = 0, ValueFromPipelineByPropertyName = $True, ValueFromPipeline = $true, ParameterSetName="ByTenant")]
+        [ValidateNotNull()]
+        [Tenant[]]$Tenant,
+
+        [parameter(Mandatory = $True, Position = 1, ValueFromPipelineByPropertyName = $True, ParameterSetName="ByConfiguration")]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({ MustBeValidTenantName $_ })]
         [String[]]$TenantName,
@@ -17,22 +21,44 @@
 
         [parameter(Mandatory = $False, Position = 3, ValueFromPipelineByPropertyName = $True)]
         [ValidateNotNull()]
-        [Switch]$EnsureDependencies
+        [Switch]$EnsureDependencies,
+
+        [parameter(Mandatory = $False, Position = 4, ParameterSetName="ByConfiguration")]
+        [switch]$Passthru
     )
     Process {
-        foreach($name in $TenantName){
+        if($PSCmdlet.ParameterSetName -eq 'ByConfiguration'){
+            # get tenant object by name
+            $Tenant = @()
+            foreach($name in $TenantName){
+                $t = $Configuration.GetTenant($name)
+                if($null -eq $t){
+                    Write-Error "A tenant with '$name' was not found in the configuration" -TargetObject $Configuration
+                } else {
+                    $Tenant += $t
+                }
+            }
+        }
+
+        # enable app
+        foreach($t in $Tenant){
             try{
-                $tenant = $Configuration[$name]
-                if(!$tenant.Has($App)){
-                    if($PSCmdlet.ShouldProcess($Configuration, "Add app $App to tenant $name")){
-                        $tenant.Add($App, $EnsureDependencies)
+                if(!$t.Has($App)){
+                    if($PSCmdlet.ShouldProcess($Configuration, "Add app $App to tenant $($t.Name)")){
+                        $t.Add($App, $EnsureDependencies)
                     }
                 }
-                Write-Output $tenant[$App]
+                if(-not $Passthru){
+                    Write-Output $t[$App]
+                }
             }
             catch{
-                Write-Error $_.Exception
+                Write-Error $_.Exception -TargetObject $t
             }
+        }
+
+        if($Passthru){
+            Write-Output $Configuration
         }
     }
 }

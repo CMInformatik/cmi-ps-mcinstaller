@@ -1,6 +1,6 @@
 ﻿function New-Tenant {
-    [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Medium', DefaultParameterSetName="__AllParameterSets")]
-    [OutputType([Tenant])]
+    [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Medium')]
+    [OutputType([Tenant], [JsonConfiguration])]
     PARAM(
         [parameter(Mandatory = $True, Position = 0, ValueFromPipelineByPropertyName = $True, ValueFromPipeline = $true)]
         [ValidateNotNull()]
@@ -8,7 +8,10 @@
 
         [parameter(Mandatory = $True, Position = 1, ValueFromPipelineByPropertyName = $True)]
         [ValidateScript({ MustBeValidTenantName $_ })]
-        [String[]]$TenantName
+        [String[]]$TenantName,
+
+        [parameter(Mandatory = $False, Position = 2)]
+        [switch]$Passthru
     )
     Process {
         foreach($name in $TenantName){
@@ -19,11 +22,16 @@
                         $Configuration.AddTenant($name) | Out-Null
                     }
                 }
-                Write-Output $Configuration[$name]
+                if(-not $Passthru){
+                    Write-Output $Configuration[$name]
+                }
             }
             catch{
                 Write-Error $_.Exception
             }
+        }
+        if($Passthru){
+            Write-Output $Configuration
         }
     }
 }

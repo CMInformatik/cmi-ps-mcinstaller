@@ -1,4 +1,34 @@
 ﻿function Add-App {
+    <#
+    .SYNOPSIS
+        Adds apps to tenants.
+    .DESCRIPTION
+        Adds apps to tenants.
+        When a tenant or app can not be processed, an output on the error stream will be generated.
+    .EXAMPLE
+        PS> Add-App -Configuration $config -App Dossierbrowser,Sitzungsvorbereitung -EnsureDependencies
+        Adds the given app to all tenants in the configuration.
+    .EXAMPLE
+        PS> Add-App -Configuration $config -App Dossierbrowser -TenantName cmi -EnsureDependencies
+        Adds the app 'Dossierbrowser' to the tenant 'cmi'.
+    .OUTPUTS
+        Passthru off: The app object or array of app objects.
+        Passthru on: The configuration object.
+    .PARAMETER Configuration
+        The configuration object to operate on.
+    .PARAMETER Passthru
+        Instead of the normal output, the configuration object will be returned.
+    .PARAMETER App
+        List of apps to add to tenants.
+        Does nothing, when an app is already present on the tenant.
+    .PARAMETER TenantName
+        List of tenant names to operate on.
+        When not present, the operation will be applied on all tenants in the configuration.
+    .PARAMETER Tenant
+        List of tenant objects to operate on.
+    .PARAMETER EnsureDependencies
+        When adding an app to a tenant, change depending aspects of the configuration as required for the app.
+    #>
     [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Medium')]
     [OutputType([AppConfiguration], [JsonConfiguration])]
     PARAM(
@@ -10,14 +40,14 @@
         [ValidateNotNull()]
         [Tenant[]]$Tenant,
 
-        [parameter(Mandatory = $True, Position = 1, ValueFromPipelineByPropertyName = $True, ParameterSetName="ByConfiguration")]
-        [ValidateNotNullOrEmpty()]
+        [parameter(Mandatory = $False, Position = 1, ValueFromPipelineByPropertyName = $True, ParameterSetName="ByConfiguration")]
+        [AllowNull()]
         [ValidateScript({ MustBeValidTenantName $_ })]
         [String[]]$TenantName,
 
         [parameter(Mandatory = $True, Position = 2, ValueFromPipelineByPropertyName = $True)]
         [ValidateNotNull()]
-        [App]$App,
+        [App[]]$App,
 
         [parameter(Mandatory = $False, Position = 3, ValueFromPipelineByPropertyName = $True)]
         [ValidateNotNull()]
@@ -30,12 +60,19 @@
         if($PSCmdlet.ParameterSetName -eq 'ByConfiguration'){
             # get tenant object by name
             $Tenant = @()
-            foreach($name in $TenantName){
-                $t = $Configuration.GetTenant($name)
-                if($null -eq $t){
-                    Write-Error "A tenant with '$name' was not found in the configuration" -TargetObject $Configuration
-                } else {
-                    $Tenant += $t
+
+            # if tenant name is null, select all tenants
+            if(-not $TenantName){
+                $Tenant = $Configuration.Tenants
+            }
+            else {
+                foreach($name in $TenantName){
+                    $t = $Configuration.GetTenant($name)
+                    if($null -eq $t){
+                        Write-Error "A tenant with name '$name' was not found in the configuration" -TargetObject $Configuration
+                    } else {
+                        $Tenant += $t
+                    }
                 }
             }
         }
@@ -43,13 +80,15 @@
         # enable app
         foreach($t in $Tenant){
             try{
-                if(!$t.Has($App)){
-                    if($PSCmdlet.ShouldProcess($Configuration, "Add app $App to tenant $($t.Name)")){
-                        $t.Add($App, $EnsureDependencies)
+                foreach($a in $App){
+                    if(!$t.Has($a)){
+                        if($PSCmdlet.ShouldProcess($Configuration, "Add app $a to tenant $($t.Name)")){
+                            $t.Add($a, $EnsureDependencies)
+                        }
                     }
-                }
-                if(-not $Passthru){
-                    Write-Output $t[$App]
+                    if(-not $Passthru){
+                        Write-Output $t[$a]
+                    }
                 }
             }
             catch{

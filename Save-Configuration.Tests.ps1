@@ -33,6 +33,14 @@ InModuleScope CMIMCInstaller {
                 Save-Configuration -Configuration $config -Path $path -Confirm:$false -Force
                 Get-Content -Path $path | Should -not -be "Unchanged"
             }
+
+            It "Saves configuration to relative paths" {
+                $path = Join-Path $TestDrive 't4.json'
+                Push-Location (Split-Path $path)
+                Save-Configuration -Configuration $config -Path ".\$(Split-Path $path -Leaf)" -ErrorAction Stop -Confirm:$false
+                Test-Path $path | Should be $true
+                Pop-Location
+            }
         }
 
         Context "When passthru is set" {
@@ -40,7 +48,7 @@ InModuleScope CMIMCInstaller {
             $config.AddTenant('test')
 
             It "Returns configuration" {
-                $path = Join-Path $TestDrive 't1.json'
+                $path = Join-Path $TestDrive 'test.json'
                 $result = Save-Configuration -Configuration $config -Path $path -Confirm:$false -Passthru
                 $result | Should -BeOfType [JsonConfiguration]
                 $result['test'] | Should -BeOfType [Tenant]

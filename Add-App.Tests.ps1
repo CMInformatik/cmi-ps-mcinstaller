@@ -5,7 +5,7 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 InModuleScope CMIMCInstaller {
     Describe "Add-App" {
         Context "When adding app" {
-            $c = New-Configuration | New-Tenant -TenantName 't1','t2','t3','t4' -Passthru
+            $c = New-Configuration | Add-Tenant -TenantName 't1','t2','t3','t4' -Passthru
 
             foreach($app in [cmi.mobileclients.config.ModelContract.McSymbols]::Apps){
                 It "Adds app $app by tenant object" {
@@ -23,6 +23,34 @@ InModuleScope CMIMCInstaller {
                 }
             }
 
+            It "Adds several apps to tenant when app list is given" {
+                $c = New-Configuration | Add-Tenant -TenantName 't1','t2' -Passthru
+                $result = $c | Add-App -TenantName t1,t2 -App Zusammenarbeitdritte,Dossierbrowser -EnsureDependencies -Confirm:$false -ErrorAction Stop
+
+                $c['t1'].Has([App]::Zusammenarbeitdritte) | Should be $true
+                $c['t1'].Has([App]::Dossierbrowser) | Should be $true
+                $c['t1'].Has([App]::Sitzungsvorbereitung) | Should be $false
+                
+                $c['t2'].Has([App]::Zusammenarbeitdritte) | Should be $true
+                $c['t2'].Has([App]::Dossierbrowser) | Should be $true
+                $c['t2'].Has([App]::Sitzungsvorbereitung) | Should be $false
+            }
+
+            It "Adds to all tenants when no tenantlist list is given" {
+                $c = New-Configuration | Add-Tenant -TenantName 't1','t2','t3' -Passthru
+                $result = $c | Add-App -App Zusammenarbeitdritte,Dossierbrowser -EnsureDependencies -Confirm:$false -ErrorAction Stop
+
+                $c['t1'].Has([App]::Zusammenarbeitdritte) | Should be $true
+                $c['t1'].Has([App]::Dossierbrowser) | Should be $true
+
+                $c['t2'].Has([App]::Zusammenarbeitdritte) | Should be $true
+                $c['t2'].Has([App]::Dossierbrowser) | Should be $true
+
+                $c['t3'].Has([App]::Zusammenarbeitdritte) | Should be $true
+                $c['t3'].Has([App]::Dossierbrowser) | Should be $true
+
+            }
+
             It "Outputs error when tenant can not be found" {
                 { Add-App -Configuration $c -TenantName notpresent -App Zusammenarbeitdritte -EnsureDependencies -Confirm:$false -ErrorAction Stop } | Should -Throw
             }
@@ -34,7 +62,7 @@ InModuleScope CMIMCInstaller {
         }
 
         Context "When returning result" {
-            $c = New-Configuration | New-Tenant -TenantName 't1','t2','t3','t4' -Passthru
+            $c = New-Configuration | Add-Tenant -TenantName 't1','t2','t3','t4' -Passthru
             It "Returns AppConfiguration" {
                 $result = Add-App -Configuration $c -TenantName 't1','t2','t3','t4' -App Zusammenarbeitdritte -EnsureDependencies -Confirm:$false
                 $result | Should -HaveCount 4

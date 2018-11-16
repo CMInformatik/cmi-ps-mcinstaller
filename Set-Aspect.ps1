@@ -1,7 +1,27 @@
 ﻿function Set-Aspect {
     <#
-    .Synopsis
-    Test
+    .SYNOPSIS
+        Sets an aspect of the configuration to the specified value.
+    .DESCRIPTION
+        Sets an aspect of the configuration to the specified value.
+        When the operation fails, an output on the error stream will be generated.
+    .EXAMPLE
+        ToDo
+    .OUTPUTS
+        ToDo
+    .PARAMETER Configuration
+        The configuration object to operate on.
+    .PARAMETER Passthru
+        Instead of the normal output, the configuration object will be returned.
+    .PARAMETER TenantName
+        List of tenant names to remove.
+        When not present, the operation will be applied on all tenants in the configuration.
+    .PARAMETER Value
+        The value to set.
+    .PARAMETER AspectPath
+        JPaht like path of the aspect to configure.
+    .PARAMETER EnsureDependencies
+        When setting the aspect to a tenant, change depending aspects of the configuration as required for this aspect.
     #>
     [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Medium', DefaultParameterSetName = "__AllParameterSets")]
     [OutputType([Tenant])]

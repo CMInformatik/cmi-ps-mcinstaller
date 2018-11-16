@@ -5,10 +5,10 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 InModuleScope CMIMCInstaller {
     Describe "Remove-Tenant" {
         Context "When removing tenants" {
-            $config = New-Configuration
-            $config.AddTenant('test1', 'test2', 'test3', 'test4', 'test5')
-
             It "Removes tenant by name" {
+                $config = New-Configuration
+                $config.AddTenant('test1', 'test2', 'test3', 'test4', 'test5')
+
                 $config.GetTenant('test2') | Should -not -be $null
                 $config.GetTenant('test3') | Should -not -be $null
                 $config.GetTenant('test4') | Should -not -be $null
@@ -19,12 +19,26 @@ InModuleScope CMIMCInstaller {
                 $config.GetTenant('test3') | Should -be $null
                 $config.GetTenant('test4') | Should -be $null
 
-                # Soll nicht die falschen Mandanten entfernen
+                # Shall not remove the wrong tenants
                 $config.GetTenant('test1') | Should -not -be $null
                 $config.GetTenant('test5') | Should -not -be $null
             }
 
+            It "Removes all tenants when no names are given" {
+                $config = New-Configuration
+                $config.AddTenant('test1', 'test2', 'test3', 'test4', 'test5')
+
+                $config.GetTenant('test2') | Should -not -be $null
+                $config.GetTenant('test3') | Should -not -be $null
+                $config.GetTenant('test4') | Should -not -be $null
+
+                Remove-Tenant -Configuration $config -Confirm:$false
+
+                $config.Tenants.Count | Should -be 0
+            }
+
             It "Does not fail, when tenant can not be found" {
+                $config = New-Configuration | Add-Tenant -TenantName 'test' -Passthru
                 Remove-Tenant -Configuration $config -TenantName notpresent -Confirm:$false -ErrorAction Stop
             }
         }

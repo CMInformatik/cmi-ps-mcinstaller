@@ -13,8 +13,13 @@ function New-FeatureProxy {
 
         function CreateProxyFunction {
             param (
+                [ValidateNotNullOrEmpty()]
                 [string]$FunctionName,
-                [bool]$FeatureValue
+                [ValidateNotNullOrEmpty()]
+                [string]$FunctionHelpText,
+                [bool]$FeatureValue,
+                [ValidateNotNullOrEmpty()]
+                [string]$FeatureHelpText
             )
             $MetaData = New-Object System.Management.Automation.CommandMetaData (Get-Command Set-Aspect -ErrorAction Stop)
             $parameter = New-Object System.Management.Automation.ParameterMetadata @($MetaData.Parameters["AspectPath"] )
@@ -30,22 +35,28 @@ function New-FeatureProxy {
             # add function
             $stringBuilder = New-Object System.Text.StringBuilder
             [void]$stringBuilder.AppendLine("Function $FunctionName {")
-            [void]$stringBuilder.AppendLine([System.Management.Automation.ProxyCommand]::GetCmdletBindingAttribute($MetaData))
 
             # add comments
-            [void]$stringBuilder.AppendLine("   <#")
+            [void]$stringBuilder.AppendLine("<#")
             $help = Get-Help Set-Aspect
+
+            [void]$stringBuilder.AppendLine(".SYNOPSIS")
+            [void]$stringBuilder.AppendLine($FunctionHelpText)
 
             foreach($key in $MetaData.Parameters.Keys){
                 $paramHelp =  $help.parameters.parameter | Where-Object { $_.name -eq $key -and $null -ne $_.description }
                 if($paramHelp){
-                    [void]$stringBuilder.AppendLine("   .PARAMETER $key")
-                    [void]$stringBuilder.AppendLine("       $($paramHelp.description.Text)")
+                    [void]$stringBuilder.AppendLine(".PARAMETER $key")
+                    [void]$stringBuilder.AppendLine("$($paramHelp.description.Text)")
                 }
             }
-            [void]$stringBuilder.AppendLine("   #>")
+
+            [void]$stringBuilder.AppendLine(".PARAMETER Feature")
+            [void]$stringBuilder.AppendLine($FeatureHelpText)
+            [void]$stringBuilder.AppendLine("#>")
 
             # add param
+            [void]$stringBuilder.AppendLine([System.Management.Automation.ProxyCommand]::GetCmdletBindingAttribute($MetaData))
             [void]$stringBuilder.AppendLine("PARAM(")
             [void]$stringBuilder.AppendLine([System.Management.Automation.ProxyCommand]::GetParamBlock($MetaData))
             [void]$stringBuilder.AppendLine(")")
@@ -64,10 +75,14 @@ function New-FeatureProxy {
             # add process
             [void]$stringBuilder.AppendLine("Process{")
             $ProcessBlock = {
-                $PSBoundParameters["AspectPath"] = "service.$($Feature.ToString())"
+
                 $PSBoundParameters["EnsureDependencies"] = $true
-                $PSBoundParameters.Remove("Feature")
-    
+                [void]$PSBoundParameters.Remove("Feature")
+                $PSBoundParameters["AspectPath"] = @()
+
+                foreach($f in $Feature){
+                    $PSBoundParameters["AspectPath"] += "service.$($f.ToString())"
+                }
                 Write-Verbose "Proxy $($MyInvocation.MyCommand) calls $(Get-Command Set-Aspect -ErrorAction Stop) with:"
                 $PSBoundParameters.Keys | ForEach-Object {
                     Write-Verbose "Proxied Parameter '$_' -> $($PSBoundParameters[$_])"
@@ -90,7 +105,7 @@ function New-FeatureProxy {
         $PSBoundParameters.Keys | ForEach-Object {
             Write-Verbose "Create Proxy with: $_ -> $($PSBoundParameters[$_])"
         }
-        CreateProxyFunction "Enable-$($App)Feature" $true
-        CreateProxyFunction "Disable-$($App)Feature" $false
+        CreateProxyFunction "Enable-$($App)Feature" "Enables features of the app $App." $true "Feature to enable."
+        CreateProxyFunction "Disable-$($App)Feature" "Disables features of the app $App." $false "Feature to disable."
     }
 }

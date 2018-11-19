@@ -50,7 +50,7 @@
                 Write-Verbose "Saving configuration to $fullName"
 
                 # write configuration
-                $tenants = [string]::Join(',', ($Configuration.Tenants | Select-Object -ExcludeProperty Name))
+                $tenants = [string]::Join(',', ($Configuration.Tenants | Select-Object -ExpandProperty Name))
                 if ($PSCmdlet.ShouldProcess($fullName, "Save $tenants")) {
                     $Configuration.WriteToFile($fullName, $Force)
                 }

@@ -22,10 +22,10 @@
         List of apps to add to tenants.
         Does nothing, when an app is already present on the tenant.
     .PARAMETER TenantName
-        List of tenant names to operate on.
+        List of tenants names to operate on.
         When not present, the operation will be applied on all tenants in the configuration.
     .PARAMETER Tenant
-        List of tenant objects to operate on.
+        List of tenants objects to operate on.
     .PARAMETER EnsureDependencies
         When adding an app to a tenant, change depending aspects of the configuration as required for the app.
     #>
@@ -43,6 +43,7 @@
         [parameter(Mandatory = $False, Position = 1, ValueFromPipelineByPropertyName = $True, ParameterSetName="ByConfiguration")]
         [AllowNull()]
         [ValidateScript({ MustBeValidTenantName $_ })]
+        [Alias('Name')]
         [String[]]$TenantName,
 
         [parameter(Mandatory = $True, Position = 2, ValueFromPipelineByPropertyName = $True)]

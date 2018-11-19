@@ -29,6 +29,7 @@
         [parameter(Mandatory = $false, Position = 1, ValueFromPipelineByPropertyName = $True)]
         [AllowNull()]
         [ValidateScript({ MustBeValidTenantName $_ })]
+        [Alias('Name')]
         [String[]]$TenantName,
 
         [parameter(Mandatory = $False, Position = 2)]

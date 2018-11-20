@@ -1,7 +1,11 @@
 ﻿#Requires -PSEdition Desktop
 
-# Konfigurationsmodell Definition
-Get-ChildItem -Path $PSScriptRoot\Internal\cmi.mobileclients.config\*.dll | ForEach-Object { 
+# Invoke-Expression for New-FeatureProxy result, no user input accepted when using Invoke-Expression.
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
+Param()
+
+# Load configurator library
+Get-ChildItem -Path $PSScriptRoot\Internal\cmi.mobileclients.config\*.dll | ForEach-Object {
     [Reflection.Assembly]::LoadFile($_.FullName)
 }
 
@@ -29,7 +33,6 @@ Get-ChildItem -Path $PSScriptRoot\*.ps1 | ForEach-Object {
 }
 
 # Generate feature functions
-Set-Variable -Name ProxyFunction -Value @() -Scope Global
 foreach ($app in $Schema.Keys) {
     $features = ($Schema[$app]['service'].Aspects.Values |
             Where-Object { $_ -is [SimpleAspect] -or ([SimpleAspect]$_).Type -eq [bool] } |
@@ -41,7 +44,6 @@ foreach ($app in $Schema.Keys) {
         $functions | ForEach-Object {
             Invoke-Expression $_.Definition
             Export-ModuleMember -Function $_.FunctionName
-            $ProxyFunction += $_.FunctionName
-        } 
+        }
     }
 }

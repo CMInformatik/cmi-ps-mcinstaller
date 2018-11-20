@@ -1,4 +1,6 @@
 function New-FeatureProxy {
+    # there is no system change
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     [CmdletBinding()]
     PARAM(
         [parameter(Mandatory = $True, Position = 0, ValueFromPipelineByPropertyName = $True)]
@@ -43,9 +45,9 @@ function New-FeatureProxy {
             [void]$stringBuilder.AppendLine(".SYNOPSIS")
             [void]$stringBuilder.AppendLine($FunctionHelpText)
 
-            foreach($key in $MetaData.Parameters.Keys){
-                $paramHelp =  $help.parameters.parameter | Where-Object { $_.name -eq $key -and $null -ne $_.description }
-                if($paramHelp){
+            foreach ($key in $MetaData.Parameters.Keys) {
+                $paramHelp = $help.parameters.parameter | Where-Object { $_.name -eq $key -and $null -ne $_.description }
+                if ($paramHelp) {
                     [void]$stringBuilder.AppendLine(".PARAMETER $key")
                     [void]$stringBuilder.AppendLine("$($paramHelp.description.Text)")
                 }
@@ -64,7 +66,7 @@ function New-FeatureProxy {
             # add begin
             [void]$stringBuilder.AppendLine("Begin{")
             [void]$stringBuilder.AppendLine("`t`t`$PSBoundParameters[`"App`"] = [App]`"$($App.ToString())`"")
-            if($FeatureValue){
+            if ($FeatureValue) {
                 [void]$stringBuilder.AppendLine("`t`t`$PSBoundParameters[`"Value`"] = `$true")
             }
             else {
@@ -80,7 +82,7 @@ function New-FeatureProxy {
                 [void]$PSBoundParameters.Remove("Feature")
                 $PSBoundParameters["AspectPath"] = @()
 
-                foreach($f in $Feature){
+                foreach ($f in $Feature) {
                     $PSBoundParameters["AspectPath"] += "service.$($f.ToString())"
                 }
                 Write-Verbose "Proxy $($MyInvocation.MyCommand) calls $(Get-Command Set-Aspect -ErrorAction Stop) with:"
@@ -96,7 +98,7 @@ function New-FeatureProxy {
 
             # result
             Write-Output @{
-                Definition = ($stringBuilder.ToString())
+                Definition   = ($stringBuilder.ToString())
                 FunctionName = $FunctionName
             }
         }

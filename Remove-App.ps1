@@ -31,7 +31,7 @@
     .PARAMETER Passthru
         Instead of the normal output, the configuration object will be returned.
     #>
-    [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'High', DefaultParameterSetName="ByConfiguration")]
     [OutputType([Tenant], [JsonConfiguration])]
     PARAM(
         [parameter(Mandatory = $True, Position = 0, ValueFromPipelineByPropertyName = $True, ValueFromPipeline = $true, ParameterSetName = "ByConfiguration")]
@@ -44,7 +44,7 @@
 
         [parameter(Mandatory = $False, Position = 1, ValueFromPipelineByPropertyName = $True, ParameterSetName = "ByConfiguration")]
         [AllowNull()]
-        [ValidateScript( { MustBeValidTenantName $_ })]
+        [ValidateScript({MustBeValidTenantName $_ })]
         [Alias('Name')]
         [String[]]$TenantName,
 

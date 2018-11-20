@@ -76,7 +76,10 @@ InModuleScope CMIMCInstaller {
                 $config['t1'].Has([App]::Sitzungsvorbereitung) | Should -BeTrue
                 $config['t2'].Has([App]::Sitzungsvorbereitung) | Should -BeTrue
 
-                $config['t2'],$config['t1'] | Remove-App -App Dossierbrowser -Confirm:$false
+                [Tenant]$t1 = $config['t1']
+                [Tenant]$t2 = $config['t2']
+
+                Remove-App -Tenant $t1,$t2 -App Dossierbrowser -Confirm:$false
 
                 $config['t1'].Has([App]::Dossierbrowser) | Should -BeFalse
                 $config['t2'].Has([App]::Dossierbrowser) | Should -BeFalse

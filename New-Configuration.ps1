@@ -1,6 +1,4 @@
 ﻿function New-Configuration {
-    # there is no system change
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     <#
     .SYNOPSIS
         Creates a new empty configuration.
@@ -15,6 +13,7 @@
     .OUTPUTS
         A JSON configuration object.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     [CmdletBinding(SupportsShouldProcess = $false, ConfirmImpact='None')]
     [OutputType([JsonConfiguration])]
     Param()

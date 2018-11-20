@@ -40,7 +40,7 @@
     }
 
     Context "Uniform function naming" {
-        $pattern = "^[A-Z][a-z]+-CMIServer[A-Z].*"
+        $pattern = "^[A-Z][a-z]+-CMIMC[A-Z].*"
         $functions = Get-Command -Module $Modulename
         if ($functions -eq $null -or $functions.Count -eq 0) {
             throw "Could not found any function in module, misspelling?"

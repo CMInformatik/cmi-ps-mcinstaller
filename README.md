@@ -45,7 +45,7 @@ Das folgende Beispiel aktiviert Zusammenarbeitdritte nur für den Mandanten *sch
 
 ```powershell
 Get-CMIMCConfiguration -Path .\config.mandanten.json |
-Add-CMIMCApp -TenantName 'schwerzenwil' -App Zusammenarbeitdritte  -Passthru |
-Get-CMIMCConfiguration -Path .\config.mandanten.json -Force
+Add-CMIMCApp -TenantName 'schwerzenwil' -App Zusammenarbeitdritte -Passthru |
+Save-CMIMCConfiguration -Path .\config.mandanten.json -Force
 ```
 

@@ -12,12 +12,18 @@
         None.
     .OUTPUTS
         A JSON configuration object.
+    .PARAMETER Schema
+        The configuration model.
     #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     [CmdletBinding(SupportsShouldProcess = $false, ConfirmImpact='None')]
     [OutputType([JsonConfiguration])]
-    Param()
-    Process {
+    Param(
+        [parameter(Mandatory = $False, Position = 0, ValueFromPipelineByPropertyName = $True, ValueFromPipeline =$true )]
+        [ValidateNotNull()]
+        [Schema]$Schema=$DefaultSchema
+    )
+        Process {
         try {
             $c = [JsonConfiguration]::CreateInstance($Schema)
             return $c

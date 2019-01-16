@@ -15,9 +15,13 @@ $accelerators::Add("JsonConfiguration", "cmi.mobileclients.config.JsonConfigurat
 $accelerators::Add("AppConfiguration", "cmi.mobileclients.config.ModelContract.Components.IAppConfiguration")
 $accelerators::Add("SimpleAspect", "cmi.mobileclients.config.ModelContract.Components.ISimpleAspect")
 $accelerators::Add("Tenant", "cmi.mobileclients.config.ModelContract.Components.ITenant")
+$accelerators::Add("Schema", "cmi.mobileclients.config.ISchema")
+
 
 # Define configuration schema
-Set-Variable -Name Schema -Value (New-Object 'cmi.mobileclients.config.DefaultSchema.DefaultSchema') -Option ReadOnly -Force -Scope Global
+Set-Variable -Name DefaultSchema -Value (New-Object 'cmi.mobileclients.config.DefaultSchema.DefaultSchema') -Option ReadOnly -Force -Scope Global
+Set-Variable -Name FrontendSchema -Value (New-Object 'cmi.mobileclients.config.FrontendSchema.FrontendSchema') -Option ReadOnly -Force -Scope Global
+
 
 # Dot source module functions
 Get-ChildItem -Path $PSScriptRoot\Internal\*.ps1 -Recurse | ForEach-Object {
@@ -33,8 +37,8 @@ Get-ChildItem -Path $PSScriptRoot\*.ps1 | ForEach-Object {
 }
 
 # Generate feature functions
-foreach ($app in $Schema.Keys) {
-    $features = ($Schema[$app]['service'].Aspects.Values |
+foreach ($app in $DefaultSchema.Keys) {
+    $features = ($DefaultSchema[$app]['service'].Aspects.Values |
             Where-Object { $_ -is [SimpleAspect] -or ([SimpleAspect]$_).Type -eq [bool] } |
             Select-Object -ExpandProperty Name) -join ','
     if(![string]::IsNullOrWhiteSpace($features)){
@@ -47,3 +51,4 @@ foreach ($app in $Schema.Keys) {
         }
     }
 }
+

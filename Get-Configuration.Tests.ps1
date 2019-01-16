@@ -40,6 +40,16 @@ InModuleScope CMIMCInstaller {
                 $path = Join-Path $TestDrive 'notpresent.json'
                 { Get-Configuration -Path $path } | Should Throw
             }
+
+            It "Uses default schema if no schema is provided" {
+                $result = Get-Configuration -Path $path1
+                $DefaultSchema.Equals($result.Schema)  | Should -BeTrue   
+            }
+
+            It "Uses provided schema" {
+                $result = Get-Configuration -Path $path1 -Schema $FrontendSchema
+                $FrontendSchema.Equals($result.Schema)  | Should -BeTrue
+            }   
         }
     }
 }

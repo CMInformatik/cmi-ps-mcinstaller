@@ -15,6 +15,8 @@
         A list of JSON configuration objects.
     .PARAMETER ConfigurationPath
         Array of file paths to configurations files. Tries to resolve relative paths.
+    .PARAMETER Schema
+        The configuration model.
     #>
     [CmdletBinding(SupportsShouldProcess = $false)]
     [OutputType([JsonConfiguration])]
@@ -22,7 +24,11 @@
         [parameter(Mandatory = $True, Position = 0, ValueFromPipelineByPropertyName = $True, ValueFromPipeline = $true)]
         [ValidateScript( { MustBeFile $_ })]
         [Alias("Path", "FullName")]
-        [string[]]$ConfigurationPath
+        [string[]]$ConfigurationPath,
+
+        [parameter(Mandatory = $False, Position = 1, ValueFromPipelineByPropertyName = $True)]
+        [ValidateNotNull()]
+        [Schema]$Schema=$DefaultSchema
     )
     Process {
         foreach ($path in $ConfigurationPath) {

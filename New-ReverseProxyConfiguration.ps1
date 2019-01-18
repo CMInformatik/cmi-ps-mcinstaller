@@ -19,6 +19,7 @@
     .PARAMETER RelayServer
         Base URL of the relay server.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')] # no system changes
     [CmdletBinding(SupportsShouldProcess = $false, ConfirmImpact = 'None')]
     [OutputType([string])]
     PARAM(

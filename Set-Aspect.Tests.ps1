@@ -6,8 +6,8 @@ InModuleScope CMIMCInstaller {
     Describe "Set-Aspect" {
         Context "When set aspect" {
             
-            $a = $Schema['Common']['service']['supportsSaveSettings']
-            $a2 = $Schema['Common']['service']['allowDokumenteOpenExternal']
+            $a = $DefaultSchema['Common']['service']['supportsSaveSettings']
+            $a2 = $DefaultSchema['Common']['service']['allowDokumenteOpenExternal']
             $c = New-Configuration | Add-Tenant -TenantName 't1','t2','t3' -Passthru
             $tenant = $c['t1']
 
@@ -60,7 +60,7 @@ InModuleScope CMIMCInstaller {
 
         Context "When returning result" {
             $c = New-Configuration | Add-Tenant -TenantName 't1', 't2', 't3', 't4' -Passthru
-            $aspect = $Schema['common'].Traverse() | Where-Object { $_ -is [SimpleAspect] } | Select-Object -First 1
+            $aspect = $DefaultSchema['common'].Traverse() | Where-Object { $_ -is [SimpleAspect] } | Select-Object -First 1
 
             It "Returns Tenant" {
                 $result = Set-Aspect -Configuration $c -TenantName 't1', 't2', 't3', 't4' -App Common -AspectPath $aspect.GetAspectPath() -EnsureDependencies -Confirm:$false

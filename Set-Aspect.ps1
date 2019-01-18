@@ -49,11 +49,11 @@
         [ValidateNotNull()]
         [App]$App,
 
-        [parameter(Mandatory = $True, Position = 3, ValueFromPipelineByPropertyName = $True, ValueFromPipeline = $true)]
+        [parameter(Mandatory = $True, Position = 3, ValueFromPipelineByPropertyName = $True)]
         [ValidateNotNullOrEmpty()]
         [string[]]$AspectPath,
 
-        [parameter(Mandatory = $False, Position = 4, ValueFromPipelineByPropertyName = $True, ValueFromPipeline = $true)]
+        [parameter(Mandatory = $False, Position = 4, ValueFromPipelineByPropertyName = $True)]
         [AllowNull()]
         [object]$Value,
 

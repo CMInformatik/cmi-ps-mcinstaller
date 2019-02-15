@@ -16,6 +16,7 @@ $accelerators::Add("AppConfiguration", "cmi.mobileclients.config.ModelContract.C
 $accelerators::Add("SimpleAspect", "cmi.mobileclients.config.ModelContract.Components.ISimpleAspect")
 $accelerators::Add("Tenant", "cmi.mobileclients.config.ModelContract.Components.ITenant")
 $accelerators::Add("Schema", "cmi.mobileclients.config.ISchema")
+$accelerators::Add("AxSupport", "cmi.mobileclients.config.ModelContract.AxSupport")
 
 
 # Define configuration schema

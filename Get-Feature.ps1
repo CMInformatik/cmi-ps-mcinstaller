@@ -3,7 +3,7 @@
     .SYNOPSIS
         Returns all supported boolean app features which can be turned off or on.
     .EXAMPLE
-        PS> Get-Features
+        PS> Get-CMIMCFeature
         Returns all features for all apps for all supported Axioma versions.
     .OUTPUTS
         SimpleAspect objects representing the features.

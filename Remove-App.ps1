@@ -63,23 +63,7 @@
     }
     Process {
         if ($PSCmdlet.ParameterSetName -eq 'ByConfiguration') {
-            # get tenant object by name
-            $Tenant = @()
-            # if tenant name is null, select all tenants
-            if (-not $TenantName) {
-                $Tenant = $Configuration.Tenants
-            }
-            else {
-                foreach ($name in $TenantName) {
-                    $t = $Configuration.GetTenant($name)
-                    if ($null -eq $t) {
-                        Write-Error "A tenant with '$name' was not found in the configuration" -TargetObject $Configuration
-                    }
-                    else {
-                        $Tenant += $t
-                    }
-                } # end foreach
-            }
+            $Tenant = Get-Tenant -TenantName $TenantName -Configuration $Configuration
         }
 
         # remove app

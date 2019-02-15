@@ -11,12 +11,12 @@ Get-ChildItem -Path $PSScriptRoot\Internal\cmi.mobileclients.config\*.dll | ForE
 
 $accelerators = [PSObject].Assembly.GetType('System.Management.Automation.TypeAccelerators')
 $accelerators::Add("App", "cmi.mobileclients.config.ModelContract.App")
+$accelerators::Add("AxSupport", "cmi.mobileclients.config.ModelContract.AxSupport")
 $accelerators::Add("JsonConfiguration", "cmi.mobileclients.config.JsonConfiguration")
 $accelerators::Add("AppConfiguration", "cmi.mobileclients.config.ModelContract.Components.IAppConfiguration")
 $accelerators::Add("SimpleAspect", "cmi.mobileclients.config.ModelContract.Components.ISimpleAspect")
 $accelerators::Add("Tenant", "cmi.mobileclients.config.ModelContract.Components.ITenant")
 $accelerators::Add("Schema", "cmi.mobileclients.config.ISchema")
-
 
 # Define configuration schema
 Set-Variable -Name DefaultSchema -Value (New-Object 'cmi.mobileclients.config.DefaultSchema.DefaultSchema') -Option ReadOnly -Force -Scope Global

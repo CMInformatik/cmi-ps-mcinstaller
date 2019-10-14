@@ -1,3 +1,7 @@
+# Write-Host ist i.o., da Script fuer Benutzer-Interaktion ausgelegt ist.
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingWriteHost", "")]
+param()
+
 Import-Module CMIMCInstaller -ErrorAction Stop
 [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
 

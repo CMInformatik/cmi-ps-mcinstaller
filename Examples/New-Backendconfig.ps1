@@ -31,9 +31,9 @@ Write-Host $TenantID -ForegroundColor Yellow
 $AxVersion = $null
 do {
     $options = [Enum]::GetNames([AxSupport])
-    $input = Read-Host "Enter the CMI Server function level: $($options -join ', ')"
-    if($options -contains $input){
-        $AxVersion = [AxSupport]::$input
+    $level = Read-Host "Enter the CMI Server function level: $($options -join ', ')"
+    if($options -contains $level){
+        $AxVersion = [AxSupport]::$level
         Write-Host $AxVersion -ForegroundColor Yellow
         break;
     }

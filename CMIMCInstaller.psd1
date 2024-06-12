@@ -3,7 +3,7 @@
     RootModule           = 'CMIMCInstaller.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.5'
+    ModuleVersion        = '0.6'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -18,7 +18,7 @@
     CompanyName          = 'CM Informatik AG'
 
     # Copyright statement for this module
-    Copyright            = '(c) 2020 CM Informatik AG. All rights reserved.'
+    Copyright            = '(c) 2024 CM Informatik AG. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description = 'Reads and writes mobile client configuration files'

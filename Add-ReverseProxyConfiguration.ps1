@@ -13,12 +13,11 @@
         [uri]$RelayServer = [uri]"https://relay.cmiaxioma.ch",
 
         [parameter(Mandatory = $True, Position = 2, ValueFromPipelineByPropertyName = $True)]
-        #[ValidateScript({ MustBeValidTenantName $_ })]
+        [ValidateScript({ MustBeValidTenantName $_ })]
         [Alias('Name')]
         [String[]]$TenantName,
 
         [parameter(Mandatory = $True, Position = 3, ValueFromPipelineByPropertyName = $True)]
-        #[ValidateScript({ MustBeValidTenantName $_ })]
         [String]$ProxyConfigurationPath 
     )   
     BEGIN {
@@ -49,30 +48,20 @@
         }
     }
     PROCESS {      
-        #$fullName = (Get-Item -Path $ProxyConfigurationPath -ErrorAction Stop).FullName
-        #Write-Host "Reading configuration from $fullName"
         $proxyConf = Get-Content -Path $ProxyConfigurationPath -raw | ConvertFrom-Json             
-        #Write-Host "Config:"
-        #Write-Host $proxyConf
         foreach ($tenant in $Configuration.Tenants) {
             if($tenant.Name -in $TenantName){
-                #$proxyConfAdd-Member –MemberType NoteProperty –Name "$($tenant.Name)pri" -Value (UrlObject "$($tenant.Name)/webapiprivate")
                 $proxyConf|Add-Member –MemberType NoteProperty –Name "$($tenant.Name)pri" -Value (UrlObject "$($tenant.Name)/webapiprivate")
-                #$proxyConf["$($tenant.Name)pub"] = UrlObject "$($tenant.Name)/webapipublic"
                 $proxyConf|Add-Member –MemberType NoteProperty –Name "$($tenant.Name)pub" -Value (UrlObject "$($tenant.Name)/webapipublic")
                 if ($tenant.Has([App]::Dossierbrowser)) {
-                    #$proxyConf["$($tenant.Name)db"] = BuildDBURL $tenant
                     $proxyConf|Add-Member –MemberType NoteProperty –Name "$($tenant.Name)db" -Value (BuildDBURL $tenant)
                 }
                 if ($tenant.Has([App]::Sitzungsvorbereitung)) {
-                    #$proxyConf["$($tenant.Name)sv"] = BuildSVURL $tenant
                     $proxyConf|Add-Member –MemberType NoteProperty –Name "$($tenant.Name)sv" -Value (BuildSVURL $tenant)
                 }
                 if ($tenant.Has([App]::Zusammenarbeitdritte)) {
-                    #$proxyConf["$($tenant.Name)zd"] = BuildZDURL $tenant
                     $proxyConf|Add-Member –MemberType NoteProperty –Name "$($tenant.Name)zd" -Value (BuildZDURL $tenant)
-                }
-                #
+                }  
             }
         }
           $proxyConf | ConvertTo-Json -Depth 99 | Out-File -FilePath $ProxyConfigurationPath

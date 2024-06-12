@@ -8,12 +8,11 @@
         [JsonConfiguration]$Configuration,
 
         [parameter(Mandatory = $True, Position = 1, ValueFromPipelineByPropertyName = $True)]
-        #[ValidateScript({ MustBeValidTenantName $_ })]
+        [ValidateScript({ MustBeValidTenantName $_ })]
         [Alias('Name')]
         [String[]]$TenantName,
 
         [parameter(Mandatory = $True, Position = 2, ValueFromPipelineByPropertyName = $True)]
-        #[ValidateScript({ MustBeValidTenantName $_ })]
         [String]$ProxyConfigurationPath 
     )   
     BEGIN {
